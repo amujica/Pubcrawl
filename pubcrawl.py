@@ -32,7 +32,8 @@ class CityPubs(Environment):
 
     # ----------------------------------INICIALIZADOR----------------------------------------------------------------------------
    
-    def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, pub_capacity=10, **kwargs):
+    def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, pub_capacity=10,
+     disco_capacity = 20, street_capacity = 30, **kwargs):
         super(CityPubs, self).__init__(*args, **kwargs)  #Para la clase superior. Constructor super.
         pubs = {}
         for i in range(number_of_pubs):
@@ -49,10 +50,10 @@ class CityPubs(Environment):
             newpub = {
                 'name': 'The awesome disco #{}'.format(i),
                 'open': True,
-                'capacity': pub_capacity ,
+                'capacity': disco_capacity ,
                 'occupancy': 0,
                 'price':randint(7, 9),
-                'type': Venues.pub.value,
+                'type': Venues.disco.value,
             }
             pubs[newpub['name']] = newpub
         for i in range(number_of_street):
@@ -62,12 +63,17 @@ class CityPubs(Environment):
                 'capacity': pub_capacity ,
                 'occupancy': 0,
                 'price':randint(2,4),
-                'type': Venues.pub.value,
+                'type': Venues.street.value,
             }
             pubs[newpub['name']] = newpub
 
             
         self['pubs'] = pubs
+
+        """ >>> tel = {'jack': 4098, 'sape': 4139}
+            >>> tel['guido'] = 4127    
+            >>> tel
+            {'sape': 4139, 'guido': 4127, 'jack': 4098}"""
 
         #Hacemos un bucle y llenamos la variable pubs con los bares que va a haber: queda así:
             #{'The awesome pub #2': {'name': 'The awesome pub #2', 'open': True, 'capacity': 10, 'occupancy': 0}, 
@@ -78,48 +84,56 @@ class CityPubs(Environment):
     #----------------------------------------MÉTODOS-------------------------------------------------------------------------------------
    
 
-    def return_occupancy (self,pub_id):
-        pub = self['pubs'][pub_id]
+    def return_occupancy (self,pub_name):
+        pub = self['pubs'][pub_name]
         return pub['occupancy']
 
-    def return_price(self,pub_id):
-        pub = self['pubs'][pub_id]
+    def return_price(self,pub_name):
+        pub = self['pubs'][pub_name]
         return pub['price']
 
-    def return_name(self,pub_id):
-        pub = self['pubs'][pub_id]
+    def return_name(self,pub_name):
+        pub = self['pubs'][pub_name]
         return pub['name']
 
 
 
-    def enter(self, pub_id, *nodes):
+    def enter(self, pub_name, *nodes):
 
         '''Agents will try to enter. The pub checks if it is possible'''
         #A este método se le pasa el id del pub al que quieren entrar, y el grupo de amigos.
         #Hace comprobaciones con la capacidad y viendo si está abierto. Devuelve True si se puede entrar.
 
         try:
-            pub = self['pubs'][pub_id]
+            pub = self['pubs'][pub_name]
         except KeyError:
-            raise ValueError('Pub {} is not available'.format(pub_id))
+            raise ValueError('Pub {} is not available'.format(pub_name))
         if not pub['open'] or (pub['capacity'] < (len(nodes) + pub['occupancy'])):
 
             return False
         pub['occupancy'] += len(nodes)
         for node in nodes:
-            node['pub'] = pub_id
+            node['pub'] = pub_name
         return True
 
 
     #Devuelve una lista de pubs en los que se puede entrar. Lo hace con yield: se genera un objeto en vez de 
     # una lista. Cuando se llama al método no se genera la lista, se genera un objeto. SOlo cuando intentemos recorrerlo
     # se generará una lista que además solo puede recorrerse una vez --> https://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do
+    """def available_pubs(self):
+                    
+                    for pub in self['pubs'].values():
+                        if pub['open'] and (pub['occupancy'] < pub['capacity']):
+                            yield pub['name']"""
+
     def available_pubs(self):
-        
-    
+        available_venues = []
         for pub in self['pubs'].values():
             if pub['open'] and (pub['occupancy'] < pub['capacity']):
-                yield pub['name']
+                available_venues.append(pub['name'])
+
+        shuffle(available_venues)
+        return available_venues 
 
 
     #Un grupo se va de un pub. La sintaxis "del" es como decir que te vacíe esa variable
@@ -147,12 +161,12 @@ class CityPubs(Environment):
                             del node['pub']
                             pub['occupancy'] -= 1
             """
-    def exit(self, pub_id, *nodes):
+    def exit(self, pub_name, *nodes):
 
         try:
-            pub = self['pubs'][pub_id]
+            pub = self['pubs'][pub_name]
         except KeyError:
-            raise ValueError('Pub {} is not available'.format(pub_id))
+            raise ValueError('Pub {} is not available'.format(pub_name))
         
         pub['occupancy'] -= len(nodes)
         
@@ -212,6 +226,7 @@ class Patron(FSM):
         available_pubs = self.env.available_pubs()
 
         for pub in available_pubs:
+
 
             self.debug('We\'re trying to get into {}: total: {}'.format(pub, len(group)))
             if self.env.enter(pub, self, *group):

@@ -34,3 +34,5 @@ environment_params:
   number_of_discos: 1
   number_of_street: 1
   pub_capacity: 10
+  disco_capacity: 10
+  street_capacity: 10
