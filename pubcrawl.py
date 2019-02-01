@@ -25,50 +25,62 @@ class CityPubs(Environment):
     The environment parameters and the state of every agent can be accessed
     both by using the environment as a dictionary or with the environment's 
     :meth:`soil.environment.Environment.get` method.
+    'name': 'The awesome pub #{}'.format(i),
+                'open': True,
+                'capacity': pub_capacity ,
+                'occupancy': 0,
+                'price':randint(4, 6),
+                'type': Venues.pub.value,
     """
 
     '''Environment with Pubs'''
     level = logging.INFO
 
     # ----------------------------------INICIALIZADOR----------------------------------------------------------------------------
-   
-    def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, pub_capacity=10,
-     disco_capacity = 20, street_capacity = 30, **kwargs):
+    """def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, pub_capacity=10,
+                 disco_capacity = 20, street_capacity = 30, **kwargs):
+                    super(CityPubs, self).__init__(*args, **kwargs)  #Para la clase superior. Constructor super.
+                    pubs = {}
+                    for i in range(number_of_pubs):
+                        newpub = {
+                            'name': 'The awesome pub #{}'.format(i),
+                            'open': True,
+                            'capacity': pub_capacity ,
+                            'occupancy': 0,
+                            'price':randint(4, 6),
+                            'type': Venues.pub.value,
+                        }
+                        pubs[newpub['name']] = newpub
+                    for i in range(number_of_discos):
+                        newpub = {
+                            'name': 'The awesome disco #{}'.format(i),
+                            'open': True,
+                            'capacity': disco_capacity ,
+                            'occupancy': 0,
+                            'price':randint(7, 9),
+                            'type': Venues.disco.value,
+                        }
+                        pubs[newpub['name']] = newpub
+                    for i in range(number_of_street):
+                        newpub = {
+                            'name': 'The awesome street #{}'.format(i),
+                            'open': True,
+                            'capacity': pub_capacity ,
+                            'occupancy': 0,
+                            'price':randint(2,4),
+                            'type': Venues.street.value,
+                        }
+                        pubs[newpub['name']] = newpub
+            
+                        
+                    self['pubs'] = pubs"""
+
+
+    def __init__(self, *args, pubs=None, **kwargs):
         super(CityPubs, self).__init__(*args, **kwargs)  #Para la clase superior. Constructor super.
-        pubs = {}
-        for i in range(number_of_pubs):
-            newpub = {
-                'name': 'The awesome pub #{}'.format(i),
-                'open': True,
-                'capacity': pub_capacity ,
-                'occupancy': 0,
-                'price':randint(4, 6),
-                'type': Venues.pub.value,
-            }
-            pubs[newpub['name']] = newpub
-        for i in range(number_of_discos):
-            newpub = {
-                'name': 'The awesome disco #{}'.format(i),
-                'open': True,
-                'capacity': disco_capacity ,
-                'occupancy': 0,
-                'price':randint(7, 9),
-                'type': Venues.disco.value,
-            }
-            pubs[newpub['name']] = newpub
-        for i in range(number_of_street):
-            newpub = {
-                'name': 'The awesome street #{}'.format(i),
-                'open': True,
-                'capacity': pub_capacity ,
-                'occupancy': 0,
-                'price':randint(2,4),
-                'type': Venues.street.value,
-            }
-            pubs[newpub['name']] = newpub
 
             
-        self['pubs'] = pubs
+        self['pubs'] = pubs or {}
 
         """ >>> tel = {'jack': 4098, 'sape': 4139}
             >>> tel['guido'] = 4127    
@@ -95,6 +107,11 @@ class CityPubs(Environment):
     def return_name(self,pub_name):
         pub = self['pubs'][pub_name]
         return pub['name']
+
+    def return_type(self,pub_name):
+        pub = self['pubs'][pub_name]
+        return pub['type']
+
 
 
 
@@ -190,6 +207,7 @@ class Patron(FSM):
         'gender': Genders.male.value,
         'money':20,
         'is_leader': False,
+        ##'interval'
     }
 
     @default_state
@@ -210,7 +228,7 @@ class Patron(FSM):
             befriended = self.try_friends(available_friends)
             if befriended:
                 
-                return self.looking_for_pub
+                return self.looking_for_pub#, self.env.timeout(3)
         else:
             self.info('{} has a group already' .format(self.id))
             return self.looking_for_pub
@@ -222,6 +240,7 @@ class Patron(FSM):
             return self.sober_in_pub
         self.debug('I am looking for a pub')
         group = list(self.get_neighboring_agents())
+
 
         available_pubs = self.env.available_pubs()
 
@@ -239,8 +258,36 @@ class Patron(FSM):
 
     @state
     def sober_in_pub(self):
+        """Manipulamos prob_change_bar dependiendo de donde estén
+                                Bar-->Disco probable
+                                Bar-->Bar   bastante probable
+                                Bar-->street probable
+                                Street-->Bar probable
+                                Street-->Disco probable
+                                Street-->Street poco probable
+                                Disco --> lo que sea poco probable(MIrar zonas como Nuit que hay varias discos)
+                        
+                                
+                                Meter house para gente que copea en casa y luego va a discoteca?
+                        
+                        
+                                En un futuro dependerá de la hora también"""
+
+        type = self.env.return_type(self['pub'])
+        
+
+        
+        if(type=="disco"):
+            self['prob_change_bar'] = 0.01
+
+        else:
+            #Street
+            self['prob_change_bar'] = 0.3
+
+
         if self['is_leader'] and (self['prob_change_bar']>random()):
             self.change_bar()
+
 
 
         '''Drink up.'''
@@ -357,9 +404,7 @@ class Police(FSM):
 
 
 
-"""if __name__ == '__main__':
-    from soil import simulation
-    simulation.run_from_config('pubcrawl.yml',
-                               dry_run=True,
-                               dump=None,
-                               parallel=False)"""
+
+
+  #EStado entre buscar amigos y bar, solo busca bar cuando sea la hora de salir
+  #self.now devuelve el t_step
