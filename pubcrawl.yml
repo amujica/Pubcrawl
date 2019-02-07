@@ -1,18 +1,18 @@
 ---
-name: Malasaña_Heavy
+name: Malasana
 num_trials: 1
 max_time: 15
 dump: false
 network_params:
-  # Generate 100 empty nodes. They will be assigned a network agent
+  
   generator: empty_graph
-  n: 100
+  n: 250
 network_agents:
   - agent_type: pubcrawl.Patron
     description: Female Drinker
     state:
       prob_drink: 0.3
-      prob_change_bar: 0.3
+      prob_change_bar: 0.4
       max_pints: 3
       gender: female
     weight: 3
@@ -21,7 +21,7 @@ network_agents:
     description: Male Drinker
     state:
       prob_drink: 0.8
-      prob_change_bar: 0.3
+      prob_change_bar: 0.4
       max_pints: 5
       gender: male
     weight: 7
@@ -30,15 +30,20 @@ environment_agents:
 environment_class: pubcrawl.CityPubs
 environment_params:
   altercations: 1
-  pubs:
+  prob_pub: 0.1
+  prob_disco: 0.8
+  prob_street: 0.1
+  pubs: 
     Space Monkey:
       name: Space Monkey
       open: true
       occupancy: 0
-      capacity: 10
+      capacity: 45
       occupancy: 0
       price: 4
       type: pub
+      entry: 0
+
 
     Via Lactea:
       name: Via Lactea
@@ -48,6 +53,7 @@ environment_params:
       occupancy: 0
       price: 5
       type: pub
+      entry: 0
 
 
     Dos de mayo:
@@ -58,15 +64,56 @@ environment_params:
       occupancy: 0
       price: 2
       type: street
+      entry: 0
 
-    Pacha:
-      name: Pacha
+
+    Chupitos:
+      name: Chupitos
       open: true
       occupancy: 0
-      capacity: 300
+      capacity: 30
       occupancy: 0
-      price: 2
+      price: 5
+      type: pub
+      entry: 0
+
+
+
+    Teleco:
+      name: Teleco
+      open: true
+      occupancy: 0
+      capacity: 60
+      occupancy: 0
+      price: 5
+      type: pub
+      entry: 0
+
+
+
+    Baile:
+      name: Baile
+      open: true
+      occupancy: 0
+      capacity: 55
+      occupancy: 0
+      price: 5
+      type: pub
+      entry: 0
+
+
+
+    Barcelo:
+      name: Barcelo
+      open: true
+      occupancy: 0
+      capacity: 200
+      occupancy: 0
+      price: 7
       type: disco
+      entry: 12
+
+    
       
     
 

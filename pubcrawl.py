@@ -5,6 +5,7 @@ from itertools import islice
 import logging
 from enum import Enum
 from random import randint
+import numpy
 
 class Genders(Enum):
     male = 'male'
@@ -125,12 +126,16 @@ class CityPubs(Environment):
             pub = self['pubs'][pub_name]
         except KeyError:
             raise ValueError('Pub {} is not available'.format(pub_name))
-        if not pub['open'] or (pub['capacity'] < (len(nodes) + pub['occupancy'])):
 
-            return False
+        for node in nodes:
+            if not pub['open'] or (pub['capacity'] < (len(nodes) + pub['occupancy'])) or node['money']< pub['entry']:
+
+                return False
+
         pub['occupancy'] += len(nodes)
         for node in nodes:
             node['pub'] = pub_name
+            node['money'] = node['money'] - pub['entry']
         return True
 
 
@@ -143,7 +148,7 @@ class CityPubs(Environment):
                         if pub['open'] and (pub['occupancy'] < pub['capacity']):
                             yield pub['name']"""
 
-    def available_pubs(self):
+    def available_pubs_total(self):
         available_venues = []
         for pub in self['pubs'].values():
             if pub['open'] and (pub['occupancy'] < pub['capacity']):
@@ -152,6 +157,32 @@ class CityPubs(Environment):
         shuffle(available_venues)
         return available_venues 
 
+    def available_pubs(self):
+        available_venues = []
+        for pub in self['pubs'].values():
+            if pub['open'] and (pub['occupancy'] < pub['capacity']) and pub['type'] == "pub":
+                available_venues.append(pub['name'])
+
+        shuffle(available_venues)
+        return available_venues 
+
+    def available_discos(self):
+        available_venues = []
+        for pub in self['pubs'].values():
+            if pub['open'] and (pub['occupancy'] < pub['capacity']) and pub['type'] == "disco":
+                available_venues.append(pub['name'])
+
+        shuffle(available_venues)
+        return available_venues 
+
+    def available_street(self):
+        available_venues = []
+        for pub in self['pubs'].values():
+            if pub['open'] and (pub['occupancy'] < pub['capacity']) and pub['type'] == "street":
+                available_venues.append(pub['name'])
+
+        shuffle(available_venues)
+        return available_venues 
 
     #Un grupo se va de un pub. La sintaxis "del" es como decir que te vacíe esa variable
     """def exit(self, pub_id, *node_ids):
@@ -207,6 +238,9 @@ class Patron(FSM):
         'gender': Genders.male.value,
         'money':20,
         'is_leader': False,
+        'group_size':0,
+        'total_changes':0,
+        'num_of_changes':0,
         ##'interval'
     }
 
@@ -218,6 +252,7 @@ class Patron(FSM):
         if(self['in_a_group'] == False):
             self.info('I am looking for friends')
             self['is_leader'] = True
+            self['num_of_changes'] = numpy.random.normal(5.9,2)
             available_friends = list(self.get_agents(drunk=False,
                                                      pub=None,
                                                      in_a_group=False))
@@ -241,8 +276,21 @@ class Patron(FSM):
         self.debug('I am looking for a pub')
         group = list(self.get_neighboring_agents())
 
+        r = random()
 
-        available_pubs = self.env.available_pubs()
+        if(self.env.get('prob_disco') > r):
+
+            available_pubs = self.env.available_discos()
+
+        elif((self.env.get('prob_pub') + self.env.get('prob_disco')) > r):
+
+            available_pubs = self.env.available_pubs()
+
+        else:
+
+            available_pubs = self.env.available_street()
+
+
 
         for pub in available_pubs:
 
@@ -271,22 +319,26 @@ class Patron(FSM):
                                 Meter house para gente que copea en casa y luego va a discoteca?
                         
                         
-                                En un futuro dependerá de la hora también"""
+                                
+                                Meter que hagan distintos itinerarios y meter proporcion de gente en bar, botellon y discoteca.
+                                En un futuro esto dependeŕa de la hora y la edad"""
 
         type = self.env.return_type(self['pub'])
-        
+
 
         
         if(type=="disco"):
             self['prob_change_bar'] = 0.01
 
+
         else:
             #Street
-            self['prob_change_bar'] = 0.3
+            self['prob_change_bar'] = 0.4
 
 
-        if self['is_leader'] and (self['prob_change_bar']>random()):
+        if self['is_leader'] and (self['prob_change_bar']>random() and self['total_changes']<self['num_of_changes']):
             self.change_bar()
+            self['total_changes'] = self['total_changes']  + 1
 
 
 
@@ -360,8 +412,9 @@ class Patron(FSM):
 
     def try_friends(self, others):
         ''' Look for random agents around me and try to befriend them'''
+        n=1
         befriended = False
-        k = randint(4, 6)
+        k = numpy.random.poisson(5.69)#k = randint(4, 6)
         shuffle(others)
         for friend in islice(others, k):  # random.choice >= 3.7
             if friend == self:
@@ -369,17 +422,20 @@ class Patron(FSM):
             if friend.befriend(self):
                 self.befriend(friend)
                 self.info('Hooray! new friend: {}'.format(friend.id))
+                n = n+1
                 befriended = True
             else:
                 self.info('{} does not want to be friends'.format(friend.id))
 
         self['in_a_group'] = True
+        self['group_size'] = n
         neighbors_leader = list(self.get_neighboring_agents())
 
         #print(*neighbors_leader)
         
         for people in neighbors_leader:
             people['in_a_group'] = True
+            people['group_size'] = n
             for i in neighbors_leader:
                 if (people!=i):
                     people.befriend(i)
