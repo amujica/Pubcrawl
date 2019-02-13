@@ -6,7 +6,8 @@ dump: false
 network_params:
   
   generator: empty_graph
-  n: 250
+  n: 300
+
 network_agents:
   - agent_type: pubcrawl.Patron
     description: Female Drinker
@@ -14,25 +15,64 @@ network_agents:
       prob_drink: 0.3
       prob_change_bar: 0.4
       max_pints: 3
+      gender: male
+      age: 15
+    weight: 15
+
+  - agent_type: pubcrawl.Patron
+    description: Female Drinker
+    state:
+      prob_drink: 0.3
+      prob_change_bar: 0.4
+      max_pints: 3
       gender: female
-    weight: 3
+      age: 15
+    weight: 15
+
+  - agent_type: pubcrawl.Patron
+    description: Female Drinker
+    state:
+      prob_drink: 0.3
+      prob_change_bar: 0.4
+      max_pints: 3
+      gender: male
+      age: 20
+    weight: 15
+
+  - agent_type: pubcrawl.Patron
+    description: Female Drinker
+    state:
+      prob_drink: 0.3
+      prob_change_bar: 0.4
+      max_pints: 3
+      gender: female
+      age: 20
+    weight: 15
 
   - agent_type: pubcrawl.Patron
     description: Male Drinker
     state:
       prob_drink: 0.8
       prob_change_bar: 0.4
-      max_pints: 5
+      max_pints: 25
       gender: male
-    weight: 7
+      age: 25
+    weight: 15
+
+  - agent_type: pubcrawl.Patron
+    description: Male Drinker
+    state:
+      prob_drink: 0.8
+      prob_change_bar: 0.4
+      max_pints: 25
+      gender: female
+      age: 25
+    weight: 25
+
 environment_agents:
   - agent_type: pubcrawl.Police
 environment_class: pubcrawl.CityPubs
 environment_params:
-  altercations: 1
-  prob_pub: 0.1
-  prob_disco: 0.8
-  prob_street: 0.1
   pubs: 
     Space Monkey:
       name: Space Monkey

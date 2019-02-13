@@ -34,47 +34,10 @@ class CityPubs(Environment):
                 'type': Venues.pub.value,
     """
 
-    '''Environment with Pubs'''
+  
     level = logging.INFO
 
-    # ----------------------------------INICIALIZADOR----------------------------------------------------------------------------
-    """def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, pub_capacity=10,
-                 disco_capacity = 20, street_capacity = 30, **kwargs):
-                    super(CityPubs, self).__init__(*args, **kwargs)  #Para la clase superior. Constructor super.
-                    pubs = {}
-                    for i in range(number_of_pubs):
-                        newpub = {
-                            'name': 'The awesome pub #{}'.format(i),
-                            'open': True,
-                            'capacity': pub_capacity ,
-                            'occupancy': 0,
-                            'price':randint(4, 6),
-                            'type': Venues.pub.value,
-                        }
-                        pubs[newpub['name']] = newpub
-                    for i in range(number_of_discos):
-                        newpub = {
-                            'name': 'The awesome disco #{}'.format(i),
-                            'open': True,
-                            'capacity': disco_capacity ,
-                            'occupancy': 0,
-                            'price':randint(7, 9),
-                            'type': Venues.disco.value,
-                        }
-                        pubs[newpub['name']] = newpub
-                    for i in range(number_of_street):
-                        newpub = {
-                            'name': 'The awesome street #{}'.format(i),
-                            'open': True,
-                            'capacity': pub_capacity ,
-                            'occupancy': 0,
-                            'price':randint(2,4),
-                            'type': Venues.street.value,
-                        }
-                        pubs[newpub['name']] = newpub
-            
-                        
-                    self['pubs'] = pubs"""
+   
 
 
     def __init__(self, *args, pubs=None, **kwargs):
@@ -94,7 +57,7 @@ class CityPubs(Environment):
             # 'The awesome pub #0': {'name': 'The awesome pub #0', 'open': True, 'capacity': 10, 'occupancy': 0}}
 
 
-    #----------------------------------------MÉTODOS-------------------------------------------------------------------------------------
+   
    
 
     def return_occupancy (self,pub_name):
@@ -112,9 +75,6 @@ class CityPubs(Environment):
     def return_type(self,pub_name):
         pub = self['pubs'][pub_name]
         return pub['type']
-
-
-
 
     def enter(self, pub_name, *nodes):
 
@@ -241,13 +201,25 @@ class Patron(FSM):
         'group_size':0,
         'total_changes':0,
         'num_of_changes':0,
+        'age': 15,
         ##'interval'
     }
+
+    
+
 
     @default_state
     @state
     def looking_for_friends(self):
         '''Look for friends to drink with'''
+        #Dependiendo de la edad podemos hacerles algunas asignaciones de parámetros de esta manera, ya que en el otro
+        #lado no se le puede meter código
+        if self['age'] == 15:
+            self['money'] = 20 #EN un futuro aquí se pone self['money'] = numpy.random.normal(20) o algo así imaginemos
+        elif self['age'] == 20:
+            self['money'] = 25
+        else:
+            self['money']=35
 
         if(self['in_a_group'] == False):
             self.info('I am looking for friends')
@@ -255,7 +227,8 @@ class Patron(FSM):
             self['num_of_changes'] = numpy.random.normal(5.9,2)
             available_friends = list(self.get_agents(drunk=False,
                                                      pub=None,
-                                                     in_a_group=False))
+                                                     in_a_group=False,
+                                                     age=self['age']))
                                                      
             if not available_friends or len(available_friends)==1:
                 self.info('Life sucks and I\'m alone!')
@@ -278,17 +251,45 @@ class Patron(FSM):
 
         r = random()
 
-        if(self.env.get('prob_disco') > r):
 
-            available_pubs = self.env.available_discos()
+        # ESTO DEPENDE DE LOS ITINERARIOS
+        # TENDRÁ QUE EMPEZAR CADA UNO EN UN SITIO DEPENDIENDO DE LA EDAD Y LUEGO SIGUEN INTINERARIOS FIJOS
+        # CON UNA CIERTA PROBABILIDAD
 
-        elif((self.env.get('prob_pub') + self.env.get('prob_disco')) > r):
+        #Preguntar como se ponen estas probabilidades en base a los estudios
 
-            available_pubs = self.env.available_pubs()
+        if(self['age'] == 15):
+
+            if (0.4>r):
+                available_pubs = self.env.available_pubs()
+
+            if (0.75>r):
+                available_pubs = self.env.available_discos()
+
+            else:
+                available_pubs = self.env.available_street()
+
+        elif(self['age'] == 20):
+
+            if (0.5>r):
+                available_pubs = self.env.available_pubs()
+
+            if (0.8>r):
+                available_pubs = self.env.available_discos()
+
+            else:
+                available_pubs = self.env.available_street()
 
         else:
 
-            available_pubs = self.env.available_street()
+            if (0.6>r):
+                available_pubs = self.env.available_pubs()
+
+            if (0.9>r):
+                available_pubs = self.env.available_discos()
+
+            else:
+                available_pubs = self.env.available_street()
 
 
 
@@ -326,13 +327,14 @@ class Patron(FSM):
         type = self.env.return_type(self['pub'])
 
 
-        
+        # ESTO DEPENDE DE LOS ITINERARIOS, QUITAR NUM_OF_CHANGES?
+      
         if(type=="disco"):
             self['prob_change_bar'] = 0.01
 
 
         else:
-            #Street
+            #Street o pub 
             self['prob_change_bar'] = 0.4
 
 
@@ -352,6 +354,8 @@ class Patron(FSM):
         '''I'm out. Take me home!'''
         self.info('I\'m so drunk. Take me home!')
         self['drunk'] = True
+        #UNA VEZ BORRACHOS SU PROBABILIDAD DE ALTERCADOS SUBE, MIRAR COMO PONER LA PROBABILIDAD DE PELEAS
+        # Y COMAS ETILICOS INICIAL EN LOS ESTUDIOS
         pass  # out drunk
 
     @state
@@ -359,14 +363,44 @@ class Patron(FSM):
         '''The end'''
         self.debug('Life sucks. I\'m home!')
     
+
+
+
     def change_bar(self):
         self.info('This member is going to change pub: {}'.format(self.id))
 
         current_pub = self['pub']
+        type = self.env.return_type(self['pub'])
 
         group = list(self.get_neighboring_agents())
+        r= random()
 
-        available_pubs = self.env.available_pubs()
+        #ITINERARIOS AQUÍ. SI ESTABAN EN UN BAR PASAN A UN BAR, SI ESTÁN EN DISCOTECA PASAN A OTRA O A UN BAR, SI ESTAN EN
+        #BOTELLON PASAN A BAR O A DISCO
+
+        if(type== "disco"):
+
+            available_pubs = self.env.available_discos()
+
+
+        elif(type== "pub"):
+
+            if (0.8>r):
+                available_pubs = self.env.available_pubs()
+
+            else:
+                available_pubs = self.env.available_discos()
+
+
+        else:
+
+            if (0.5>r):
+                available_pubs = self.env.available_pubs()
+
+            else:
+                available_pubs = self.env.available_discos()
+
+        
 
         for pub in available_pubs:
             if self.env.return_name(pub) != current_pub:
@@ -383,7 +417,6 @@ class Patron(FSM):
                     self.info("We can\'t go inside {}".format(pub))
         
 
-                    #COMPLETAR#-----------
 
 
     
