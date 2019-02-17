@@ -1,72 +1,78 @@
 ---
 name: Malasana
 num_trials: 1
-max_time: 15
+max_time: 48
 dump: false
 network_params:
   
   generator: empty_graph
-  n: 300
+  n: 400
 
 network_agents:
   - agent_type: pubcrawl.Patron
-    description: Female Drinker
+    description: 15-19 year old male
     state:
-      prob_drink: 0.3
+      prob_drink: 0.4
       prob_change_bar: 0.4
-      max_pints: 3
+      max_pints: 4
       gender: male
       age: 15
+      altercation_drinkthreshold: 8
     weight: 15
 
   - agent_type: pubcrawl.Patron
-    description: Female Drinker
+    description: 15-19 year old female
     state:
       prob_drink: 0.3
-      prob_change_bar: 0.4
+      prob_change_bar: 0.3
       max_pints: 3
       gender: female
       age: 15
+      altercation_drinkthreshold: 6
     weight: 15
 
   - agent_type: pubcrawl.Patron
-    description: Female Drinker
+    description: 20-24 year old male
+    state:
+      prob_drink: 0.4
+      prob_change_bar: 0.4
+      max_pints: 6
+      gender: male
+      age: 20
+      altercation_drinkthreshold: 12
+    weight: 15
+
+  - agent_type: pubcrawl.Patron
+    description: 20-24 year old female
     state:
       prob_drink: 0.3
       prob_change_bar: 0.4
-      max_pints: 3
-      gender: male
-      age: 20
-    weight: 15
-
-  - agent_type: pubcrawl.Patron
-    description: Female Drinker
-    state:
-      prob_drink: 0.3
-      prob_change_bar: 0.4
-      max_pints: 3
+      max_pints: 4
       gender: female
       age: 20
+      altercation_drinkthreshold: 8
     weight: 15
 
   - agent_type: pubcrawl.Patron
-    description: Male Drinker
+    description: 25-30 year old male
     state:
-      prob_drink: 0.8
+      prob_drink: 0.5
       prob_change_bar: 0.4
-      max_pints: 25
+      max_pints: 6
       gender: male
       age: 25
+      altercation_drinkthreshold: 12
     weight: 15
 
   - agent_type: pubcrawl.Patron
-    description: Male Drinker
+    description: 25-30 year old female
     state:
-      prob_drink: 0.8
+      prob_drink: 0.4
       prob_change_bar: 0.4
-      max_pints: 25
+      max_pints: 4
       gender: female
       age: 25
+      altercation_drinkthreshold: 8
     weight: 25
 
 environment_agents:
@@ -84,7 +90,6 @@ environment_params:
       type: pub
       entry: 0
 
-
     Via Lactea:
       name: Via Lactea
       open: true
@@ -94,7 +99,6 @@ environment_params:
       price: 5
       type: pub
       entry: 0
-
 
     Dos de mayo:
       name: Dos de mayo
@@ -106,7 +110,6 @@ environment_params:
       type: street
       entry: 0
 
-
     Chupitos:
       name: Chupitos
       open: true
@@ -116,8 +119,6 @@ environment_params:
       price: 5
       type: pub
       entry: 0
-
-
 
     Teleco:
       name: Teleco
@@ -129,8 +130,6 @@ environment_params:
       type: pub
       entry: 0
 
-
-
     Baile:
       name: Baile
       open: true
@@ -141,15 +140,23 @@ environment_params:
       type: pub
       entry: 0
 
-
-
     Barcelo:
       name: Barcelo
       open: true
       occupancy: 0
       capacity: 200
       occupancy: 0
-      price: 7
+      price: 10
+      type: disco
+      entry: 12
+
+    DiscoDance:
+      name: DiscoDance
+      open: true
+      occupancy: 0
+      capacity: 200
+      occupancy: 0
+      price: 10
       type: disco
       entry: 12
 

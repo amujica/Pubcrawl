@@ -202,6 +202,8 @@ class Patron(FSM):
         'total_changes':0,
         'num_of_changes':0,
         'age': 15,
+        'altercation_drinkthreshold': 12,
+        'intoxicated': False,
         ##'interval'
     }
 
@@ -215,16 +217,16 @@ class Patron(FSM):
         #Dependiendo de la edad podemos hacerles algunas asignaciones de parámetros de esta manera, ya que en el otro
         #lado no se le puede meter código
         if self['age'] == 15:
-            self['money'] = 20 #EN un futuro aquí se pone self['money'] = numpy.random.normal(20) o algo así imaginemos
+            self['money'] = randint(17,23) #EN un futuro aquí se pone self['money'] = numpy.random.normal(20) o algo así imaginemos
         elif self['age'] == 20:
-            self['money'] = 25
+            self['money'] = randint(22,27)
         else:
-            self['money']=35
+            self['money']=randint(32,40)
 
         if(self['in_a_group'] == False):
             self.info('I am looking for friends')
             self['is_leader'] = True
-            self['num_of_changes'] = numpy.random.normal(5.9,2)
+            self['num_of_changes'] = int(numpy.random.normal(5.9,2))
             available_friends = list(self.get_agents(drunk=False,
                                                      pub=None,
                                                      in_a_group=False,
@@ -262,8 +264,9 @@ class Patron(FSM):
 
             if (0.4>r):
                 available_pubs = self.env.available_pubs()
+                
 
-            if (0.75>r):
+            elif (0.75>r):
                 available_pubs = self.env.available_discos()
 
             else:
@@ -273,8 +276,11 @@ class Patron(FSM):
 
             if (0.5>r):
                 available_pubs = self.env.available_pubs()
+                
 
-            if (0.8>r):
+
+
+            elif (0.8>r):
                 available_pubs = self.env.available_discos()
 
             else:
@@ -284,8 +290,9 @@ class Patron(FSM):
 
             if (0.6>r):
                 available_pubs = self.env.available_pubs()
+                
 
-            if (0.9>r):
+            elif (0.9>r):
                 available_pubs = self.env.available_discos()
 
             else:
@@ -294,8 +301,8 @@ class Patron(FSM):
 
 
         for pub in available_pubs:
-
-
+            
+           
             self.debug('We\'re trying to get into {}: total: {}'.format(pub, len(group)))
             if self.env.enter(pub, self, *group):
                 self.info('We\'re all {} getting in {}!'.format(len(group)+1, pub))
@@ -307,22 +314,7 @@ class Patron(FSM):
 
     @state
     def sober_in_pub(self):
-        """Manipulamos prob_change_bar dependiendo de donde estén
-                                Bar-->Disco probable
-                                Bar-->Bar   bastante probable
-                                Bar-->street probable
-                                Street-->Bar probable
-                                Street-->Disco probable
-                                Street-->Street poco probable
-                                Disco --> lo que sea poco probable(MIrar zonas como Nuit que hay varias discos)
-                        
-                                
-                                Meter house para gente que copea en casa y luego va a discoteca?
-                        
-                        
-                                
-                                Meter que hagan distintos itinerarios y meter proporcion de gente en bar, botellon y discoteca.
-                                En un futuro esto dependeŕa de la hora y la edad"""
+      
 
         type = self.env.return_type(self['pub'])
 
@@ -347,16 +339,29 @@ class Patron(FSM):
         '''Drink up.'''
         self.drink()
         if self['pints'] > self['max_pints']:
+            self['drunk'] = True
+            self.info('I\'m so drunk.')
             return self.drunk_in_pub
 
     @state
     def drunk_in_pub(self):
-        '''I'm out. Take me home!'''
-        self.info('I\'m so drunk. Take me home!')
-        self['drunk'] = True
+        
+        #Cuando están borrachos, NO se van a casa, pero pueden tener altercados. Coma etilico (o intoxicacion), pelea o violencia verbal
+        #, vandalismo
+        #Tanbien puede cambiar de bar. Comprobar lo mismo que en sober pero
+        #cambiando parámetros
+        
+        
+        self.drink()
+
+        if self['pints'] > self['altercation_drinkthreshold']:
+            self.info('I got intoxicated')
+            self['intoxicated'] = True
+            return self.at_home
+
         #UNA VEZ BORRACHOS SU PROBABILIDAD DE ALTERCADOS SUBE, MIRAR COMO PONER LA PROBABILIDAD DE PELEAS
         # Y COMAS ETILICOS INICIAL EN LOS ESTUDIOS
-        pass  # out drunk
+      # out drunk
 
     @state
     def at_home(self):
@@ -385,12 +390,12 @@ class Patron(FSM):
 
         elif(type== "pub"):
 
-            if (0.8>r):
-                available_pubs = self.env.available_pubs()
+            """if (0.8>r):"""
+            available_pubs = self.env.available_pubs()
 
-            else:
-                available_pubs = self.env.available_discos()
-
+            """else:
+                                                    available_pubs = self.env.available_discos()"""
+            """Ahora no hay gente que vaya de bar a disco"""
 
         else:
 
@@ -415,6 +420,7 @@ class Patron(FSM):
                     
                 else:
                     self.info("We can\'t go inside {}".format(pub))
+                    #Pues buscan otra opcion
         
 
 
@@ -422,10 +428,12 @@ class Patron(FSM):
     
     def drink(self):
         price = self.env.return_price(self['pub'])
+        
+            
         if(self['prob_drink']>random() and price<self['money']):
-            self['pints'] += 1
-            self['money'] -= price
-            self.debug('Cheers to that')
+            self['pints'] = self['pints'] + 1
+            self['money'] = self['money'] -  price
+            self.info('Cheers to that')
             
             self.debug('The price is {} € at {}'.format(price,self['pub']))
 
@@ -483,11 +491,12 @@ class Police(FSM):
     @default_state
     @state
     def patrol(self):
-        drunksters = list(self.get_agents(drunk=True,
+        #Echará a los que tienen altercados en un local
+        intoxicates = list(self.get_agents(intoxicated=True,
                                           state_id=Patron.drunk_in_pub.id))
-        for drunk in drunksters:
-            self.info('Kicking out the trash: {}'.format(drunk.id))
-            drunk.kick_out()
+        for intoxicate in intoxicates:
+            self.info('Kicking out the intoxicated agents: {}'.format(intoxicate.id))
+            intoxicate.kick_out()
         else:
             self.info('No trash to take out. Too bad.')
 
