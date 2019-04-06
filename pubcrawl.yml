@@ -1,19 +1,19 @@
 ---
 name: Malasana
 num_trials: 1
-max_time: 48
+max_time: 37
 dump: false
 network_params:
   
   generator: empty_graph
-  n: 400
+  n: 190
 
 network_agents:
   - agent_type: pubcrawl.Patron
     description: 15-19 year old male
     state:
       prob_drink: 0.4
-      prob_change_bar: 0.4
+      prob_change_bar: 0.2
       max_pints: 4
       gender: male
       age: 15
@@ -24,7 +24,7 @@ network_agents:
     description: 15-19 year old female
     state:
       prob_drink: 0.3
-      prob_change_bar: 0.3
+      prob_change_bar: 0.2
       max_pints: 3
       gender: female
       age: 15
@@ -35,7 +35,7 @@ network_agents:
     description: 20-24 year old male
     state:
       prob_drink: 0.4
-      prob_change_bar: 0.4
+      prob_change_bar: 0.2
       max_pints: 6
       gender: male
       age: 20
@@ -46,7 +46,7 @@ network_agents:
     description: 20-24 year old female
     state:
       prob_drink: 0.3
-      prob_change_bar: 0.4
+      prob_change_bar: 0.2
       max_pints: 4
       gender: female
       age: 20
@@ -57,7 +57,7 @@ network_agents:
     description: 25-30 year old male
     state:
       prob_drink: 0.5
-      prob_change_bar: 0.4
+      prob_change_bar: 0.2
       max_pints: 6
       gender: male
       age: 25
@@ -68,7 +68,7 @@ network_agents:
     description: 25-30 year old female
     state:
       prob_drink: 0.4
-      prob_change_bar: 0.4
+      prob_change_bar: 0.2
       max_pints: 4
       gender: female
       age: 25
@@ -79,89 +79,7 @@ environment_agents:
   - agent_type: pubcrawl.Police
 environment_class: pubcrawl.CityPubs
 environment_params:
-  pubs: 
-    Space Monkey:
-      name: Space Monkey
-      open: true
-      occupancy: 0
-      capacity: 45
-      occupancy: 0
-      price: 4
-      type: pub
-      entry: 0
-
-    Via Lactea:
-      name: Via Lactea
-      open: true
-      occupancy: 0
-      capacity: 30
-      occupancy: 0
-      price: 5
-      type: pub
-      entry: 0
-
-    Dos de mayo:
-      name: Dos de mayo
-      open: true
-      occupancy: 0
-      capacity: 100
-      occupancy: 0
-      price: 2
-      type: street
-      entry: 0
-
-    Chupitos:
-      name: Chupitos
-      open: true
-      occupancy: 0
-      capacity: 30
-      occupancy: 0
-      price: 5
-      type: pub
-      entry: 0
-
-    Teleco:
-      name: Teleco
-      open: true
-      occupancy: 0
-      capacity: 60
-      occupancy: 0
-      price: 5
-      type: pub
-      entry: 0
-
-    Baile:
-      name: Baile
-      open: true
-      occupancy: 0
-      capacity: 55
-      occupancy: 0
-      price: 5
-      type: pub
-      entry: 0
-
-    Barcelo:
-      name: Barcelo
-      open: true
-      occupancy: 0
-      capacity: 200
-      occupancy: 0
-      price: 10
-      type: disco
-      entry: 12
-
-    DiscoDance:
-      name: DiscoDance
-      open: true
-      occupancy: 0
-      capacity: 200
-      occupancy: 0
-      price: 10
-      type: disco
-      entry: 12
-
-    
-      
-    
-
-
+  number_of_pubs: 30
+  number_of_discos: 1
+  number_of_street: 1
+  

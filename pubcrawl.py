@@ -40,25 +40,60 @@ class CityPubs(Environment):
    
 
 
-    def __init__(self, *args, pubs=None, **kwargs):
-        super(CityPubs, self).__init__(*args, **kwargs)  #Para la clase superior. Constructor super.
-
+    def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, **kwargs):
+                   
+                    super(CityPubs, self).__init__(*args, **kwargs)  #Para la clase superior. Constructor super.
+                    pubs = {}
+                    for i in range(number_of_pubs):
+                        newpub = {
+                            'name': 'The awesome pub #{}'.format(i),
+                            'open': False,
+                            'capacity': numpy.random.normal(100,50),
+                            'occupancy': 0,
+                            'price':randint(5, 8),
+                            'type': Venues.pub.value,
+                            'entry': 0,
+                            'opening_time': 1,
+                            'closing_time': randint(19,23),
+                        }
+                        pubs[newpub['name']] = newpub
+                    for i in range(number_of_discos):
+                        newpub = {
+                            'name': 'The awesome disco #{}'.format(i),
+                            'open': False,
+                            'capacity': numpy.random.normal(1300,1000) ,
+                            'occupancy': 0,
+                            'price':randint(7, 12),
+                            'type': Venues.disco.value,
+                            'entry': randint(15,20),
+                            'opening_time': 9,
+                            'closing_time': randint(31,35),
+                        }
+                        pubs[newpub['name']] = newpub
+                    for i in range(number_of_street):
+                        newpub = {
+                            'name': 'The awesome street #{}'.format(i),
+                            'open': False,
+                            'capacity': 10000 ,
+                            'occupancy': 0,
+                            'price':randint(2,5),
+                            'type': Venues.street.value,
+                            'entry': 0,
+                            'opening_time': 1,
+                            'closing_time': 38,
+                        }
+                        pubs[newpub['name']] = newpub
             
-        self['pubs'] = pubs or {}
-
-        """ >>> tel = {'jack': 4098, 'sape': 4139}
-            >>> tel['guido'] = 4127    
-            >>> tel
-            {'sape': 4139, 'guido': 4127, 'jack': 4098}"""
-
-        #Hacemos un bucle y llenamos la variable pubs con los bares que va a haber: queda así:
-            #{'The awesome pub #2': {'name': 'The awesome pub #2', 'open': True, 'capacity': 10, 'occupancy': 0}, 
-            # 'The awesome pub #1': {'name': 'The awesome pub #1', 'open': True, 'capacity': 10, 'occupancy': 0}, 
-            # 'The awesome pub #0': {'name': 'The awesome pub #0', 'open': True, 'capacity': 10, 'occupancy': 0}}
+                        
+                    self['pubs'] = pubs
 
 
-   
-   
+
+
+    def return_open (self,pub_name):
+        pub = self['pubs'][pub_name]
+        return pub['open']
+
 
     def return_occupancy (self,pub_name):
         pub = self['pubs'][pub_name]
@@ -75,6 +110,29 @@ class CityPubs(Environment):
     def return_type(self,pub_name):
         pub = self['pubs'][pub_name]
         return pub['type']
+
+    def return_opening_time(self,pub_name):
+        pub = self['pubs'][pub_name]
+        return pub['opening_time']
+
+    def return_closing_time(self,pub_name):
+        pub = self['pubs'][pub_name]
+        return pub['closing_time']
+
+
+    def set_open(self,pub_name):
+        pub = self['pubs'][pub_name]
+        pub['open'] = True
+
+    def set_close(self,pub_name):
+        pub = self['pubs'][pub_name]
+        pub['open'] = False
+
+    def set_capacity(self,pub_name, number):
+        pub = self['pubs'][pub_name]
+        pub['capacity'] = number
+
+        
 
     def enter(self, pub_name, *nodes):
 
@@ -144,6 +202,13 @@ class CityPubs(Environment):
         shuffle(available_venues)
         return available_venues 
 
+    def get_venues(self):
+
+        venues = []
+        for venue in self['pubs'].values():
+            venues.append(venue['name'])
+        return venues 
+
     #Un grupo se va de un pub. La sintaxis "del" es como decir que te vacíe esa variable
     """def exit(self, pub_id, *node_ids):
                     '''Agents will notify the pub they want to leave'''
@@ -187,6 +252,8 @@ class Patron(FSM):
         2) Look for a bar where the agent and other agents in the same group can get in.
         3) While in the bar, patrons only drink, until they get drunk and taken home.
     '''
+
+    """Aquí va un init donde se hace todo"""
     level = logging.INFO
 
     defaults = {
@@ -195,19 +262,29 @@ class Patron(FSM):
         'pints': 0,
         'max_pints': 5,
         'in_a_group':False,
-        'gender': Genders.male.value,
+        #'gender': Genders.male.value,
         'money':20,
         'is_leader': False,
         'group_size':0,
-        'total_changes':0,
         'num_of_changes':0,
-        'age': 15,
+        #'age': 15,
         'altercation_drinkthreshold': 12,
         'intoxicated': False,
+        'going_out_time':10,
+        'coming_back_time':16
         ##'interval'
     }
 
-    
+    """def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, **kwargs):
+        r=random()
+                             if age==15:
+                                 if r<0.163:
+                                     self['coming_back_time'] = randint()
+                             elif age==20:
+                     
+                             else:
+
+    """
 
 
     @default_state
@@ -237,11 +314,11 @@ class Patron(FSM):
                 return self.at_home
             befriended = self.try_friends(available_friends)
             if befriended:
-                
-                return self.looking_for_pub#, self.env.timeout(3)
+                #Se les da una hora de salir a todos la misma, quizás hacer en una función
+                return self.looking_for_pub#, self.env.timeout(3)--mismo comentario de going_out_time
         else:
             self.info('{} has a group already' .format(self.id))
-            return self.looking_for_pub
+            return self.looking_for_pub #No pasar al siguiente hasta que pasen going_out_time pasos
 
     @state
     def looking_for_pub(self):
@@ -319,6 +396,8 @@ class Patron(FSM):
         type = self.env.return_type(self['pub'])
 
 
+
+
         # ESTO DEPENDE DE LOS ITINERARIOS, QUITAR NUM_OF_CHANGES?
       
         if(type=="disco"):
@@ -327,17 +406,18 @@ class Patron(FSM):
 
         else:
             #Street o pub 
-            self['prob_change_bar'] = 0.4
+            self['prob_change_bar'] = 0.2
 
 
-        if self['is_leader'] and (self['prob_change_bar']>random() and self['total_changes']<self['num_of_changes']):
+        if (self['is_leader'] and self['prob_change_bar']>random()) or (self['is_leader'] and not self.env.return_open(self['pub'])):
             self.change_bar()
-            self['total_changes'] = self['total_changes']  + 1
+            self['num_of_changes'] = self['num_of_changes']  + 1
 
 
 
         '''Drink up.'''
         self.drink()
+
         if self['pints'] > self['max_pints']:
             self['drunk'] = True
             self.info('I\'m so drunk.')
@@ -350,7 +430,9 @@ class Patron(FSM):
         #, vandalismo
         #Tanbien puede cambiar de bar. Comprobar lo mismo que en sober pero
         #cambiando parámetros
-        
+        if (self['is_leader'] and self['prob_change_bar']>random()) or (self['is_leader'] and not self.env.return_open(self['pub'])):
+            self.change_bar()
+            self['num_of_changes'] = self['num_of_changes']  + 1
         
         self.drink()
 
@@ -366,7 +448,8 @@ class Patron(FSM):
     @state
     def at_home(self):
         '''The end'''
-        self.debug('Life sucks. I\'m home!')
+        self.info('Life sucks. I\'m home!')
+        self.die()
     
 
 
@@ -405,9 +488,17 @@ class Patron(FSM):
             else:
                 available_pubs = self.env.available_discos()
 
-        
+        if len(available_pubs) == 0:
+
+            for friend in group:
+                friend.set_state(self.at_home)
+            self.info("Todo cerrado. Nos vamos a casa")
+            self.set_state(self.at_home)
+
 
         for pub in available_pubs:
+            
+
             if self.env.return_name(pub) != current_pub:
                 self.debug('We\'re trying to get into {}: total: {}'.format(pub, len(group)))
                 if self.env.enter(pub, self, *group):
@@ -485,24 +576,44 @@ class Patron(FSM):
                         
 
 class Police(FSM):
-    '''Simple agent to take drunk people out of pubs.'''
+    '''Simple agent to take intoxicated people out of pubs.'''
     level = logging.INFO
 
     @default_state
     @state
     def patrol(self):
-        #Echará a los que tienen altercados en un local
+
+        '''Abre o cierra los bares'''
+        pubs = self.env.get_venues() 
+
+
+        for pub in pubs:
+
+            if self.now == self.env.return_opening_time(pub):
+                self.env.set_open(pub)
+                self.info('El {} ha abierto'.format(pub))
+
+            
+            if self.now == self.env.return_closing_time(pub):
+                self.env.set_close(pub)
+                self.info('El {} ha cerrado con {} personas dentro'.format(pub, self.env.return_occupancy(pub)))
+                #Echa a toda la gente de dentro, mirar qué hacen los agentes cuando les echan
+
+
+        '''Echará a los que están intoxicados en un local'''
         intoxicates = list(self.get_agents(intoxicated=True,
                                           state_id=Patron.drunk_in_pub.id))
         for intoxicate in intoxicates:
             self.info('Kicking out the intoxicated agents: {}'.format(intoxicate.id))
             intoxicate.kick_out()
-        else:
-            self.info('No trash to take out. Too bad.')
+
+
+        '''Echará a los que se han peleado en un local'''
 
 
 
+        '''Politicas a probar'''
+        """for pub in pubs:
+                                    if self.now == 15:
+                                        self.env.set_capacity(pub,0)"""
 
-
-  #EStado entre buscar amigos y bar, solo busca bar cuando sea la hora de salir
-  #self.now devuelve el t_step
