@@ -18,27 +18,8 @@ class Venues(Enum):
 
 
 class CityPubs(Environment):
-
-    """
-    The environment is key in a simulation. It contains the network topology,
-    a reference to network and environment agents, as well as the environment
-    params, which are used as shared state between agents.
-    The environment parameters and the state of every agent can be accessed
-    both by using the environment as a dictionary or with the environment's 
-    :meth:`soil.environment.Environment.get` method.
-    'name': 'The awesome pub #{}'.format(i),
-                'open': True,
-                'capacity': pub_capacity ,
-                'occupancy': 0,
-                'price':randint(4, 6),
-                'type': Venues.pub.value,
-    """
-
   
     level = logging.INFO
-
-   
-
 
     def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, **kwargs):
                    
@@ -54,7 +35,7 @@ class CityPubs(Environment):
                             'type': Venues.pub.value,
                             'entry': 0,
                             'opening_time': 1,
-                            'closing_time': randint(19,23),
+                            'closing_time': randint(20,24),
                         }
                         pubs[newpub['name']] = newpub
                     for i in range(number_of_discos):
@@ -66,8 +47,8 @@ class CityPubs(Environment):
                             'price':randint(7, 12),
                             'type': Venues.disco.value,
                             'entry': randint(15,20),
-                            'opening_time': 9,
-                            'closing_time': randint(31,35),
+                            'opening_time': 10,
+                            'closing_time': randint(32,36),
                         }
                         pubs[newpub['name']] = newpub
                     for i in range(number_of_street):
@@ -80,7 +61,7 @@ class CityPubs(Environment):
                             'type': Venues.street.value,
                             'entry': 0,
                             'opening_time': 1,
-                            'closing_time': 38,
+                            'closing_time': 39,
                         }
                         pubs[newpub['name']] = newpub
             
@@ -93,7 +74,6 @@ class CityPubs(Environment):
     def return_open (self,pub_name):
         pub = self['pubs'][pub_name]
         return pub['open']
-
 
     def return_occupancy (self,pub_name):
         pub = self['pubs'][pub_name]
@@ -119,7 +99,6 @@ class CityPubs(Environment):
         pub = self['pubs'][pub_name]
         return pub['closing_time']
 
-
     def set_open(self,pub_name):
         pub = self['pubs'][pub_name]
         pub['open'] = True
@@ -130,9 +109,7 @@ class CityPubs(Environment):
 
     def set_capacity(self,pub_name, number):
         pub = self['pubs'][pub_name]
-        pub['capacity'] = number
-
-        
+        pub['capacity'] = number  
 
     def enter(self, pub_name, *nodes):
 
@@ -154,17 +131,10 @@ class CityPubs(Environment):
         for node in nodes:
             node['pub'] = pub_name
             node['money'] = node['money'] - pub['entry']
+
+
+        #El líder hace un link con el bar en cuestión
         return True
-
-
-    #Devuelve una lista de pubs en los que se puede entrar. Lo hace con yield: se genera un objeto en vez de 
-    # una lista. Cuando se llama al método no se genera la lista, se genera un objeto. SOlo cuando intentemos recorrerlo
-    # se generará una lista que además solo puede recorrerse una vez --> https://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do
-    """def available_pubs(self):
-                    
-                    for pub in self['pubs'].values():
-                        if pub['open'] and (pub['occupancy'] < pub['capacity']):
-                            yield pub['name']"""
 
     def available_pubs_total(self):
         available_venues = []
@@ -247,13 +217,7 @@ class CityPubs(Environment):
 
 
 class Patron(FSM):
-    '''Agent that looks for friends to drink with. It will do three things:
-        1) Look for other patrons to drink with
-        2) Look for a bar where the agent and other agents in the same group can get in.
-        3) While in the bar, patrons only drink, until they get drunk and taken home.
-    '''
-
-    """Aquí va un init donde se hace todo"""
+  
     level = logging.INFO
 
     defaults = {
@@ -262,48 +226,214 @@ class Patron(FSM):
         'pints': 0,
         'max_pints': 5,
         'in_a_group':False,
-        #'gender': Genders.male.value,
         'money':20,
         'is_leader': False,
         'group_size':0,
         'num_of_changes':0,
-        #'age': 15,
-        'altercation_drinkthreshold': 12,
         'intoxicated': False,
         'going_out_time':10,
         'coming_back_time':16
-        ##'interval'
+
     }
-
-    """def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, **kwargs):
-        r=random()
-                             if age==15:
-                                 if r<0.163:
-                                     self['coming_back_time'] = randint()
-                             elif age==20:
-                     
-                             else:
-
-    """
-
 
     @default_state
     @state
-    def looking_for_friends(self):
-        '''Look for friends to drink with'''
-        #Dependiendo de la edad podemos hacerles algunas asignaciones de parámetros de esta manera, ya que en el otro
-        #lado no se le puede meter código
-        if self['age'] == 15:
-            self['money'] = randint(17,23) #EN un futuro aquí se pone self['money'] = numpy.random.normal(20) o algo así imaginemos
-        elif self['age'] == 20:
-            self['money'] = randint(22,27)
+    def setting_parameters(self):
+
+    
+        '''Setting max_pints'''
+        if self['age']==15:
+            if self['gender']=="female":
+                self['max_pints']=numpy.random.normal(3,1)
+            else:
+                self['max_pints']=numpy.random.normal(4,1)
+
+        elif self['age']==20:
+            if self['gender']=="female":
+                self['max_pints']=numpy.random.normal(4,2)
+            else:
+                self['max_pints']=numpy.random.normal(6,2)
+
         else:
-            self['money']=randint(32,40)
+            if self['gender']=="female":
+                self['max_pints']=numpy.random.normal(4,2)
+            else:
+                self['max_pints']=numpy.random.normal(6,2)
+
+
+
+        '''Setting intoxication_drinkthreshold'''
+        self['intoxication_drinkthreshold'] = 2*self['max_pints']
+        
+        #Setting money
+        if self['age']==15:
+            if self['gender']=="female":
+                self['money']=numpy.random.normal(25,10)
+            else:
+                self['money']=numpy.random.normal(25,15)
+
+        elif self['age']==20:
+            if self['gender']=="female":
+                self['money']=numpy.random.normal(35,15)
+            else:
+                self['money']=numpy.random.normal(40,15)
+
+        else:
+            if self['gender']=="female":
+                self['money']=numpy.random.normal(60,20)
+            else:
+                self['money']=numpy.random.normal(65,25)
+
+
+
+        
+        r = random()
+
+        #Setting coming_back_time
+
+
+        if self['age']==15:
+
+            if r<0.163:
+                self['coming_back_time'] = randint(6,9)
+                                                
+            elif r<0.299:
+                                    
+                self['coming_back_time'] = randint(10,13)
+                                                    
+            elif r<0.407:
+                                    
+                self['coming_back_time'] = randint(14,17)
+
+            elif r<0.543:
+                                    
+                self['coming_back_time'] = randint(18,21)
+
+
+            elif r<0.67:
+                                    
+                self['coming_back_time'] = randint(22,25)
+
+            elif r<0.771:
+                                    
+                self['coming_back_time'] = randint(26,29)
+
+            elif r<0.863:
+                                    
+                self['coming_back_time'] = randint(30,33)
+
+            elif r<0.932:
+                                    
+                self['coming_back_time'] = randint(34,37)
+
+            elif r<0.965:
+                                    
+                self['coming_back_time'] = randint(38,42)
+
+            else:
+
+                self['coming_back_time'] = randint(6,42)
+
+        elif self['age']==20:
+
+            if r<0.078:
+                self['coming_back_time'] = randint(6,9)
+                                                
+            elif r<0.152:
+                                    
+                self['coming_back_time'] = randint(10,13)
+                                                    
+            elif r<0.253:
+                                    
+                self['coming_back_time'] = randint(14,17)
+
+            elif r<0.409:
+                                    
+                self['coming_back_time'] = randint(18,21)
+
+
+            elif r<0.581:
+                                    
+                self['coming_back_time'] = randint(22,25)
+
+            elif r<0.709:
+                                    
+                self['coming_back_time'] = randint(26,29)
+
+            elif r<0.811:
+                                    
+                self['coming_back_time'] = randint(30,33)
+
+            elif r<0.915:
+                                    
+                self['coming_back_time'] = randint(34,37)
+
+            elif r<0.966:
+                                    
+                self['coming_back_time'] = randint(38,42)
+
+            else:
+
+                self['coming_back_time'] = randint(6,42)
+
+        else:
+
+            if r<0.082:
+                self['coming_back_time'] = randint(6,9)
+                                                
+            elif r<0.163:
+                                    
+                self['coming_back_time'] = randint(10,13)
+                                                    
+            elif r<0.266:
+                                    
+                self['coming_back_time'] = randint(14,17)
+
+            elif r<0.451:
+                                    
+                self['coming_back_time'] = randint(18,21)
+
+
+            elif r<0.604:
+                                    
+                self['coming_back_time'] = randint(22,25)
+
+            elif r<0.724:
+                                    
+                self['coming_back_time'] = randint(26,29)
+
+            elif r<0.819:
+                                    
+                self['coming_back_time'] = randint(30,33)
+
+            elif r<0.908:
+                                    
+                self['coming_back_time'] = randint(34,37)
+
+            elif r<0.942:
+                                    
+                self['coming_back_time'] = randint(38,42)
+
+            else:
+
+                self['coming_back_time'] = randint(6,42)
+
+                                    
+    
+        return self.looking_for_friends
+
+
+
+    
+    @state
+    def looking_for_friends(self):
+     
+        
 
         if(self['in_a_group'] == False):
             self.info('I am looking for friends')
             self['is_leader'] = True
-            self['num_of_changes'] = int(numpy.random.normal(5.9,2))
+ 
             available_friends = list(self.get_agents(drunk=False,
                                                      pub=None,
                                                      in_a_group=False,
@@ -317,7 +447,7 @@ class Patron(FSM):
                 #Se les da una hora de salir a todos la misma, quizás hacer en una función
                 return self.looking_for_pub#, self.env.timeout(3)--mismo comentario de going_out_time
         else:
-            self.info('{} has a group already' .format(self.id))
+            self.debug('{} has a group already' .format(self.id))
             return self.looking_for_pub #No pasar al siguiente hasta que pasen going_out_time pasos
 
     @state
@@ -325,23 +455,17 @@ class Patron(FSM):
         '''Look for a pub that accepts me and my friends'''
         if self['pub'] != None:
             return self.sober_in_pub
+
+         
+
         self.debug('I am looking for a pub')
         group = list(self.get_neighboring_agents())
-
-        r = random()
-
-
-        # ESTO DEPENDE DE LOS ITINERARIOS
-        # TENDRÁ QUE EMPEZAR CADA UNO EN UN SITIO DEPENDIENDO DE LA EDAD Y LUEGO SIGUEN INTINERARIOS FIJOS
-        # CON UNA CIERTA PROBABILIDAD
-
-        #Preguntar como se ponen estas probabilidades en base a los estudios
-
+        r=random()
         if(self['age'] == 15):
 
             if (0.4>r):
                 available_pubs = self.env.available_pubs()
-                
+                    
 
             elif (0.75>r):
                 available_pubs = self.env.available_discos()
@@ -353,7 +477,7 @@ class Patron(FSM):
 
             if (0.5>r):
                 available_pubs = self.env.available_pubs()
-                
+                    
 
 
 
@@ -367,15 +491,13 @@ class Patron(FSM):
 
             if (0.6>r):
                 available_pubs = self.env.available_pubs()
-                
+                    
 
             elif (0.9>r):
                 available_pubs = self.env.available_discos()
 
             else:
                 available_pubs = self.env.available_street()
-
-
 
         for pub in available_pubs:
             
@@ -389,10 +511,12 @@ class Patron(FSM):
             else:
                 self.info("We can\'t go inside {}".format(pub))
 
+
+
     @state
     def sober_in_pub(self):
       
-
+        #Set prob_fight
         type = self.env.return_type(self['pub'])
 
 
@@ -401,11 +525,9 @@ class Patron(FSM):
         # ESTO DEPENDE DE LOS ITINERARIOS, QUITAR NUM_OF_CHANGES?
       
         if(type=="disco"):
-            self['prob_change_bar'] = 0.01
-
+            self['prob_change_bar'] = 0
 
         else:
-            #Street o pub 
             self['prob_change_bar'] = 0.2
 
 
@@ -413,10 +535,9 @@ class Patron(FSM):
             self.change_bar()
             self['num_of_changes'] = self['num_of_changes']  + 1
 
-
-
-        '''Drink up.'''
         self.drink()
+
+        '''Setting prob_drink'''
 
         if self['pints'] > self['max_pints']:
             self['drunk'] = True
@@ -538,7 +659,7 @@ class Patron(FSM):
         '''
        
         self.env.add_edge(self, other_agent)
-        self.info('Made some friend, agent {}'.format(other_agent.id))
+        self.debug('Made some friend, agent {}'.format(other_agent.id))
         return True
         
 
@@ -553,7 +674,7 @@ class Patron(FSM):
                 continue
             if friend.befriend(self):
                 self.befriend(friend)
-                self.info('Hooray! new friend: {}'.format(friend.id))
+                #self.info('Hooray! new friend: {}'.format(friend.id))
                 n = n+1
                 befriended = True
             else:
@@ -571,7 +692,10 @@ class Patron(FSM):
             for i in neighbors_leader:
                 if (people!=i):
                     people.befriend(i)
-        
+
+        self.info('Now we are a group: ')
+        for people in neighbors_leader:
+            self.info('{}'.format(people.id))
         return befriended
                         
 

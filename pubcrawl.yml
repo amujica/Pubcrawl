@@ -1,18 +1,18 @@
 ---
 name: Malasana
 num_trials: 1
-max_time: 37
+max_time: 38
 dump: false
 network_params:
   
   generator: empty_graph
-  n: 190
+  n: 50
 
 network_agents:
   - agent_type: pubcrawl.Patron
     description: 15-19 year old male
     state:
-      prob_drink: 0.4
+      prob_drink: 0.5
       prob_change_bar: 0.2
       max_pints: 4
       gender: male
@@ -23,7 +23,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 15-19 year old female
     state:
-      prob_drink: 0.3
+      prob_drink: 0.4
       prob_change_bar: 0.2
       max_pints: 3
       gender: female
@@ -34,7 +34,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 20-24 year old male
     state:
-      prob_drink: 0.4
+      prob_drink: 0.5
       prob_change_bar: 0.2
       max_pints: 6
       gender: male
@@ -45,7 +45,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 20-24 year old female
     state:
-      prob_drink: 0.3
+      prob_drink: 0.4
       prob_change_bar: 0.2
       max_pints: 4
       gender: female
@@ -56,7 +56,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 25-30 year old male
     state:
-      prob_drink: 0.5
+      prob_drink: 0.4
       prob_change_bar: 0.2
       max_pints: 6
       gender: male
