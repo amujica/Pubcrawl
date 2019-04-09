@@ -803,8 +803,8 @@ class Police(FSM):
 
 
         '''Echará a los que están intoxicados en un local'''
-        intoxicates = list(self.get_agents(intoxicated=True,
-                                          state_id=Patron.drunk_in_pub.id))
+        intoxicates = list(self.get_agents(intoxicated=True
+                                          ))
         for intoxicate in intoxicates:
             self.info('Kicking out the intoxicated agents: {}'.format(intoxicate.id))
             intoxicate.kick_out()
