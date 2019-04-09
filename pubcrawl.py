@@ -114,9 +114,7 @@ class CityPubs(Environment):
     def enter(self, pub_name, *nodes):
 
         '''Agents will try to enter. The pub checks if it is possible'''
-        #A este método se le pasa el id del pub al que quieren entrar, y el grupo de amigos.
-        #Hace comprobaciones con la capacidad y viendo si está abierto. Devuelve True si se puede entrar.
-
+    
         try:
             pub = self['pubs'][pub_name]
         except KeyError:
@@ -133,7 +131,7 @@ class CityPubs(Environment):
             node['money'] = node['money'] - pub['entry']
 
 
-        #El líder hace un link con el bar en cuestión
+        #El líder hace un link con el bar en cuestión self.env.add_edge(self, pub)
         return True
 
     def available_pubs_total(self):
@@ -265,7 +263,7 @@ class Patron(FSM):
         '''Setting intoxication_drinkthreshold'''
         self['intoxication_drinkthreshold'] = 2*self['max_pints']
         
-        #Setting money
+        '''Setting money'''
         if self['age']==15:
             if self['gender']=="female":
                 self['money']=numpy.random.normal(25,10)
@@ -289,7 +287,7 @@ class Patron(FSM):
         
         r = random()
 
-        #Setting coming_back_time
+        '''Setting coming_back_time'''
 
 
         if self['age']==15:
@@ -428,6 +426,7 @@ class Patron(FSM):
     @state
     def looking_for_friends(self):
      
+        #ARREGLAR QUE NO ESPERAN LOS PASOS PARA SALIR! Problema de soil, no funcion el self.env.timeout
         
 
         if(self['in_a_group'] == False):
@@ -442,16 +441,54 @@ class Patron(FSM):
             if not available_friends or len(available_friends)==1:
                 self.info('Life sucks and I\'m alone!')
                 return self.at_home
+
             befriended = self.try_friends(available_friends)
             if befriended:
-                #Se les da una hora de salir a todos la misma, quizás hacer en una función
-                return self.looking_for_pub#, self.env.timeout(3)--mismo comentario de going_out_time
+
+                group = list(self.get_neighboring_agents())
+
+                r=random()
+                if self['age']==15:
+                    if(r<0.3963):
+                        going_out_time = 2
+                    elif(r<(0.3963+0.2642)):
+                        going_out_time = randint(3,6)
+                    elif(r<(0.3963+0.2642+0.2642)):
+                        going_out_time = randint(7,10)
+                    else:
+                        going_out_time = randint(11,18)
+
+                elif self['age']==20:
+                    if(r<0.1519):
+                        going_out_time = 2
+                    elif(r<(0.1519+0.2658)):
+                        going_out_time = randint(3,6)
+                    elif(r<(0.1519+0.2658+0.4937)):
+                        going_out_time = randint(7,10)
+                    else:
+                        going_out_time = randint(11,18)
+
+                else:
+                    if(r<0.2041):
+                        going_out_time = 2
+                    elif(r<(0.2041+0.449)):
+                        going_out_time = randint(3,6)
+                    elif(r<(0.2041+0.449+0.2653)):
+                        going_out_time = randint(7,10)
+                    else:
+                        going_out_time = randint(11,18)
+
+                for friend in group:
+                    friend['going_out_time']= going_out_time
+               
+                return self.looking_for_pub, self.env.timeout(self['going_out_time']-self.now) 
         else:
             self.debug('{} has a group already' .format(self.id))
-            return self.looking_for_pub #No pasar al siguiente hasta que pasen going_out_time pasos
+            return self.looking_for_pub, self.env.timeout(self['going_out_time']-self.now)
 
     @state
     def looking_for_pub(self):
+
         '''Look for a pub that accepts me and my friends'''
         if self['pub'] != None:
             return self.sober_in_pub
@@ -460,14 +497,15 @@ class Patron(FSM):
 
         self.debug('I am looking for a pub')
         group = list(self.get_neighboring_agents())
+
         r=random()
         if(self['age'] == 15):
 
-            if (0.4>r):
+            if (0.429>r):
                 available_pubs = self.env.available_pubs()
                     
 
-            elif (0.75>r):
+            elif ((0.429+0.337)>r):
                 available_pubs = self.env.available_discos()
 
             else:
@@ -475,13 +513,10 @@ class Patron(FSM):
 
         elif(self['age'] == 20):
 
-            if (0.5>r):
+            if (0.509>r):
                 available_pubs = self.env.available_pubs()
-                    
 
-
-
-            elif (0.8>r):
+            elif (0.509+0.337>r):
                 available_pubs = self.env.available_discos()
 
             else:
@@ -489,15 +524,20 @@ class Patron(FSM):
 
         else:
 
-            if (0.6>r):
+            if (0.629>r):
                 available_pubs = self.env.available_pubs()
                     
 
-            elif (0.9>r):
+            elif ((0.629+0.287)>r):
                 available_pubs = self.env.available_discos()
 
             else:
                 available_pubs = self.env.available_street()
+
+        if (len(available_pubs)) == 0:
+            available_pubs = self.env.available_pubs()
+            self.info('No había discos y me voy mejor a un bar')
+
 
         for pub in available_pubs:
             
@@ -510,13 +550,35 @@ class Patron(FSM):
                 return self.sober_in_pub
             else:
                 self.info("We can\'t go inside {}".format(pub))
-
+                
+        ##Si no puede entrar después de todas la iteraciones dar alternativa dependiendo
+          #del caso. Buscan plan de otro tipo, en otro tipo de Venue. Si tampoco pueden, se van a casa
+        
 
 
     @state
     def sober_in_pub(self):
-      
+        
+        #Comrpobar si hay razón para irse a casa
+        #Option of having a fight
+        #Set prob_change
+        #Option of changing pub if you are a leader
+
+            #Que cambien según itinerarios. Si num_changes=0, cambia dependiendo donde esté. 
+            #Bar--> disco 
+            #bar-->bar -->bar...
+            #Street--> bar -->bar ...
+            #Street--> disco
+            #De las discoteca no sale nadie
+            #Si se intenta cambiar a un sitio y no está disponible, se queda donde está (esto lo que hace es suponer que los agentes
+            #se saben los horarios de los sitios)
+
+            #Si num_changes=1 y está en un bar va a bar, si est ya es más de uno y hay cambiado...
+        #Option of drinking a beverage
+        #Check if the Patron is drunk
         #Set prob_fight
+        #Set prob_drink
+
         type = self.env.return_type(self['pub'])
 
 
@@ -546,11 +608,16 @@ class Patron(FSM):
 
     @state
     def drunk_in_pub(self):
+        #Comrpobar si hhay razón para irse a casa
+        #Option of having a fight
+        #Set prob_change
+        #Option of changing pub if you are a leader
+        #Option of drinking a beverage
+        #Check if the Patron is drunk
+        #Set prob_fight
+        #Set prob_drink
         
-        #Cuando están borrachos, NO se van a casa, pero pueden tener altercados. Coma etilico (o intoxicacion), pelea o violencia verbal
-        #, vandalismo
-        #Tanbien puede cambiar de bar. Comprobar lo mismo que en sober pero
-        #cambiando parámetros
+
         if (self['is_leader'] and self['prob_change_bar']>random()) or (self['is_leader'] and not self.env.return_open(self['pub'])):
             self.change_bar()
             self['num_of_changes'] = self['num_of_changes']  + 1
@@ -562,9 +629,7 @@ class Patron(FSM):
             self['intoxicated'] = True
             return self.at_home
 
-        #UNA VEZ BORRACHOS SU PROBABILIDAD DE ALTERCADOS SUBE, MIRAR COMO PONER LA PROBABILIDAD DE PELEAS
-        # Y COMAS ETILICOS INICIAL EN LOS ESTUDIOS
-      # out drunk
+    
 
     @state
     def at_home(self):
@@ -584,22 +649,24 @@ class Patron(FSM):
         group = list(self.get_neighboring_agents())
         r= random()
 
-        #ITINERARIOS AQUÍ. SI ESTABAN EN UN BAR PASAN A UN BAR, SI ESTÁN EN DISCOTECA PASAN A OTRA O A UN BAR, SI ESTAN EN
-        #BOTELLON PASAN A BAR O A DISCO
 
+        #Pensar bien en las posibilidades y ver que hacen si no encuentran el sitio que buscan
         if(type== "disco"):
 
             available_pubs = self.env.available_discos()
 
 
         elif(type== "pub"):
+            r = random()
 
-            """if (0.8>r):"""
-            available_pubs = self.env.available_pubs()
+            if r<0.6 and self.now>=10:
 
-            """else:
-                                                    available_pubs = self.env.available_discos()"""
-            """Ahora no hay gente que vaya de bar a disco"""
+                available_pubs = self.env.available_discos()
+                
+            else:
+                available_pubs = self.env.available_pubs()
+                
+           
 
         else:
 
@@ -631,8 +698,12 @@ class Patron(FSM):
                     return
                     
                 else:
-                    self.info("We can\'t go inside {}".format(pub))
-                    #Pues buscan otra opcion
+                    self.info("We can\'t go inside {}. There are {} people inside and is {}".format(pub, self.env.return_occupancy(pub),self.env.return_open(pub)))
+                  
+          ##Si no puede entrar después de todas la iteraciones dar alternativa dependiendo
+          #del caso. Si no pueden por precio (se quedan donde están), o si no pueden por horario (se quedan donde están)
+                #O no caben: , vuelven a otro del tipo anterior donde estaban
+
         
 
 
@@ -667,7 +738,14 @@ class Patron(FSM):
         ''' Look for random agents around me and try to befriend them'''
         n=1
         befriended = False
-        k = numpy.random.poisson(5.69)#k = randint(4, 6)
+        r = random()
+        if r<0.1:
+            k = randint(3,5)
+        elif r<0.411:
+            k = randint(6,10)
+        else:
+            k=randint(10,15)
+
         shuffle(others)
         for friend in islice(others, k):  # random.choice >= 3.7
             if friend == self:
