@@ -6,7 +6,7 @@ dump: false
 network_params:
   
   generator: empty_graph
-  n: 50
+  n: 30
 
 network_agents:
   - agent_type: pubcrawl.Patron
@@ -17,7 +17,7 @@ network_agents:
       max_pints: 4
       gender: male
       age: 15
-      altercation_drinkthreshold: 8
+      
     weight: 15
 
   - agent_type: pubcrawl.Patron
@@ -28,7 +28,7 @@ network_agents:
       max_pints: 3
       gender: female
       age: 15
-      altercation_drinkthreshold: 6
+      
     weight: 15
 
   - agent_type: pubcrawl.Patron
@@ -39,7 +39,7 @@ network_agents:
       max_pints: 6
       gender: male
       age: 20
-      altercation_drinkthreshold: 12
+      
     weight: 15
 
   - agent_type: pubcrawl.Patron
@@ -50,7 +50,7 @@ network_agents:
       max_pints: 4
       gender: female
       age: 20
-      altercation_drinkthreshold: 8
+      
     weight: 15
 
   - agent_type: pubcrawl.Patron
@@ -61,7 +61,7 @@ network_agents:
       max_pints: 6
       gender: male
       age: 25
-      altercation_drinkthreshold: 12
+      
     weight: 15
 
   - agent_type: pubcrawl.Patron
@@ -72,14 +72,14 @@ network_agents:
       max_pints: 4
       gender: female
       age: 25
-      altercation_drinkthreshold: 8
+      
     weight: 25
 
 environment_agents:
   - agent_type: pubcrawl.Police
 environment_class: pubcrawl.CityPubs
 environment_params:
-  number_of_pubs: 5
-  number_of_discos: 2
-  number_of_street: 3
+  number_of_pubs: 2
+  number_of_discos: 0
+  number_of_street: 0
   
