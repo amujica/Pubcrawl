@@ -88,6 +88,8 @@ class CityPubs(Environment):
         return pub['name']
 
     def return_type(self,pub_name):
+        if pub_name==None:
+            return None
         pub = self['pubs'][pub_name]
         return pub['type']
 
@@ -951,7 +953,7 @@ class Patron(FSM):
             self.info("Nuestro plan se nos ha acabado")
             for friend in group:
                 friend.set_state(self.at_home)
-                self.info('Me voy a casa en un bucle de estos:{}'.format(friend.id))
+                self.debug('Me voy a casa en un bucle de estos:{}'.format(friend.id))
             
             self.set_state(self.at_home)
             return
@@ -975,7 +977,7 @@ class Patron(FSM):
                     return
                     
                 else:
-                    self.info("We can\'t go inside {}. There are {} people inside and is {}".format(pub, self.env.return_occupancy(pub),self.env.return_open(pub)))
+                    self.debug("We can\'t go inside {}. There are {} people inside and is {}".format(pub, self.env.return_occupancy(pub),self.env.return_open(pub)))
         
         self.info('Al final no pudimos cambiar a ninguno y nos quedamos en este')
 
@@ -988,14 +990,19 @@ class Patron(FSM):
     def fight(self):
         fighters = list(self.get_agents(pub=self['pub']))
         shuffle(fighters)
+        #fighters.remove('xyz');
 
-        if (len(fighters)==0):
+
+        if (len(fighters)==1):
             self.info('No hay nadie con quien pelear')
             return
 
-        election = fighters[0]
         for fighter in fighters:
-            if fighter['prob_fight']>election['prob_fight']:
+            if fighter.id!=self.id:
+                election = fighter
+        
+        for fighter in fighters:
+            if (fighter['prob_fight']>election['prob_fight']) and (fighter.id!=self.id) and (not fighter['in_a_fight']):
                 election = fighter
 
         self.info('Me peleo con {}'.format(election.id))
@@ -1021,7 +1028,7 @@ class Patron(FSM):
 
         occupancy = self.env.return_occupancy(self['pub'])
         self.env.set_occupancy(self['pub'], occupancy-1)
-        self.info('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
+        self.debug('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
         self['pub']=None
         
 
@@ -1093,7 +1100,7 @@ class Police(FSM):
         '''Abre o cierra los bares'''
         pubs = self.env.get_venues() 
 
-        self.debug('CONTADOR:')
+        self.info('CONTADOR:')
         self.debug('Ya hay {} Patrons en su casa'.format(len(list(self.get_agents(state_id=Patron.at_home.id)))))
 
         for pub in pubs:
@@ -1104,7 +1111,7 @@ class Police(FSM):
 
             
 
-            self.debug('{} tiene dentro {} personas'.format(self.env.return_name(pub),self.env.return_occupancy(pub)))
+            self.info('{} tiene dentro {} personas'.format(self.env.return_name(pub),self.env.return_occupancy(pub)))
             if self.now == self.env.return_closing_time(pub):
                 self.env.set_close(pub)
                 self.info('El {} ha cerrado con {} personas dentro'.format(pub, self.env.return_occupancy(pub)))
@@ -1119,7 +1126,7 @@ class Police(FSM):
 
 
         '''Echará a los que se han peleado en un local'''
-        agent = list(self.get_agents(in_a_fight=True))
+        agents = list(self.get_agents(in_a_fight=True))
         for agent in agents:
             if (self.env.return_type(agent['pub'])=="disco") or (self.env.return_type(agent['pub'])=="pub"):
                 self.info('Kicking out the fight agents: {}'.format(agent.id))
@@ -1130,7 +1137,7 @@ class Police(FSM):
             
 
 
-         '''Pequeña funcionalidad que viene bien poner aquí'''
+        '''Pequeña funcionalidad que viene bien poner aquí'''
         agent = list(self.get_agents(in_a_fight=True))
         for agent in agents:
             agent['in_a_fight']==False
@@ -1148,4 +1155,5 @@ y entonces su grupo de amigo cambia de venue. Quizás algunos se vayan.
 Cosas que comprobar:
 Que el orden de las llamadas en sober_in_pub y drunk_in_pub es el orden correcto para que por ejemplo 
 no cambien de estado a drunk_in_pub cuando antes debería cambiar a at_home.
+
 '''
