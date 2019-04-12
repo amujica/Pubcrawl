@@ -29,7 +29,7 @@ class CityPubs(Environment):
                         newpub = {
                             'name': 'The awesome pub #{}'.format(i),
                             'open': False,
-                            'capacity': numpy.random.normal(100,50),
+                            'capacity': numpy.random.normal(100,25),
                             'occupancy': 0,
                             'price':randint(5, 8),
                             'type': Venues.pub.value,
@@ -42,12 +42,12 @@ class CityPubs(Environment):
                         newpub = {
                             'name': 'The awesome disco #{}'.format(i),
                             'open': False,
-                            'capacity': numpy.random.normal(1300,1000) ,
+                            'capacity': numpy.random.normal(1300,500) ,
                             'occupancy': 0,
                             'price':randint(7, 12),
                             'type': Venues.disco.value,
                             'entry': randint(15,20),
-                            'opening_time': 10,
+                            'opening_time': 1, #ES el10!!
                             'closing_time': randint(32,36),
                         }
                         pubs[newpub['name']] = newpub
@@ -184,7 +184,7 @@ class CityPubs(Environment):
 
     def reelect_leader(self,*group):
         for node in group:
-            self['is_leader']=True
+            node['is_leader']=True
             return
         #Hace un link al bar donde estén
 
@@ -258,21 +258,21 @@ class Patron(FSM):
         '''Setting max_pints'''
         if self['age']==15:
             if self['gender']=="female":
-                self['max_pints']=numpy.random.normal(3,1)
+                self['max_pints']=numpy.random.normal(3,0.5)
             else:
-                self['max_pints']=numpy.random.normal(4,1)
+                self['max_pints']=numpy.random.normal(4,0.5)
 
         elif self['age']==20:
             if self['gender']=="female":
-                self['max_pints']=numpy.random.normal(4,2)
+                self['max_pints']=numpy.random.normal(4,1)
             else:
-                self['max_pints']=numpy.random.normal(6,2)
+                self['max_pints']=numpy.random.normal(6,1)
 
         else:
             if self['gender']=="female":
-                self['max_pints']=numpy.random.normal(4,2)
+                self['max_pints']=numpy.random.normal(4,1)
             else:
-                self['max_pints']=numpy.random.normal(6,2)
+                self['max_pints']=numpy.random.normal(6,1)
 
 
 
@@ -282,21 +282,21 @@ class Patron(FSM):
         '''Setting money'''
         if self['age']==15:
             if self['gender']=="female":
-                self['money']=numpy.random.normal(25,10)
+                self['money']=numpy.random.normal(25,5)
             else:
-                self['money']=numpy.random.normal(25,15)
+                self['money']=numpy.random.normal(25,7)
 
         elif self['age']==20:
             if self['gender']=="female":
-                self['money']=numpy.random.normal(35,15)
+                self['money']=numpy.random.normal(35,7)
             else:
-                self['money']=numpy.random.normal(40,15)
+                self['money']=numpy.random.normal(40,7)
 
         else:
             if self['gender']=="female":
-                self['money']=numpy.random.normal(60,20)
+                self['money']=numpy.random.normal(60,10)
             else:
-                self['money']=numpy.random.normal(65,25)
+                self['money']=numpy.random.normal(65,10)
 
 
 
@@ -615,6 +615,8 @@ class Patron(FSM):
     def sober_in_pub(self):
 
         group = list(self.get_neighboring_agents())
+
+        
         #Comprobar si hay razón para irse a casa
 
            
@@ -634,7 +636,7 @@ class Patron(FSM):
 
         
 
-        if (self['group_size'] * 0.5) >= friends_remaining+1:
+        if ((self['group_size'] * 0.5) >= friends_remaining+1) or (friends_remaining==0):
             self.info('Me voy a casa porque habíamos salido {} y solo quedamos {}'.format(self['group_size'], friends_remaining+1))
             for friend in group:
                 friend.set_state(self.at_home)
@@ -646,19 +648,21 @@ class Patron(FSM):
 
 
         #Option of having a fight
-        #Set prob_change_bar
-        #Option of changing pub if you are a leader
-        #Option of drinking a beverage
-        #Check if the Patron is drunk
+        
+        
+        
+       
         #Set prob_fight
-        #Set prob_drink
+        
+
+        
+
+
+
+
+        #Set prob_change_bar
 
         type = self.env.return_type(self['pub'])
-
-
-
-
-        # ESTO DEPENDE DE LOS ITINERARIOS, QUITAR NUM_OF_CHANGES?
       
         if(type=="disco"):
             self['prob_change_bar'] = 0
@@ -667,14 +671,19 @@ class Patron(FSM):
             self['prob_change_bar'] = 0.2
 
 
+        #Option of changing pub if you are a leader
+
         if (self['is_leader'] and self['prob_change_bar']>random()) or (self['is_leader'] and not self.env.return_open(self['pub'])):
             self.change_bar()
-            self['num_of_changes'] = self['num_of_changes']  + 1
-
+            
+        #Option of drinking a beverage
         self.drink()
 
-        '''Setting prob_drink'''
+        #Set prob_drink
 
+
+
+        #Check if the Patron is drunk
         if self['pints'] > self['max_pints']:
             self['drunk'] = True
             self.info('I\'m so drunk.')
@@ -694,7 +703,8 @@ class Patron(FSM):
 
         if (self['is_leader'] and self['prob_change_bar']>random()) or (self['is_leader'] and not self.env.return_open(self['pub'])):
             self.change_bar()
-            self['num_of_changes'] = self['num_of_changes']  + 1
+            
+
         
         self.drink()
 
@@ -717,7 +727,8 @@ class Patron(FSM):
         if (self['pub']!=None):
             occupancy = self.env.return_occupancy(self['pub'])
             self.env.set_occupancy(self['pub'], occupancy-1)
-            self.info('El bar tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
+            self.info('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
+            self['pub']=None
         
 
         self.die(remove=True)
@@ -736,7 +747,7 @@ class Patron(FSM):
             #Si se intenta cambiar a un sitio y no está disponible, se queda donde está (esto lo que hace es suponer que los agentes
             #se saben los horarios de los sitios)
 
-        self.info('This member is going to change pub: {}'.format(self.id))
+        self.info('This member is going to change venue: {}'.format(self.id))
 
         current_pub = self['pub']
         type = self.env.return_type(self['pub'])
@@ -753,7 +764,7 @@ class Patron(FSM):
 
         elif(type== "pub"):
 
-            if self['num_of_changes']>=2:
+            if self['num_of_changes']>=1:
                 available_pubs = self.env.available_pubs()
 
             else:
@@ -777,11 +788,13 @@ class Patron(FSM):
 
         if len(available_pubs) == 0:
 
+            self.info("Nuestro plan se nos ha acabado")
             for friend in group:
                 friend.set_state(self.at_home)
                 self.info('Me voy a casa en un bucle de estos:{}'.format(friend.id))
-            self.info("Nuestro plan se nos ha acabado")
+            
             self.set_state(self.at_home)
+            return
 
 
         for pub in available_pubs:
@@ -794,15 +807,18 @@ class Patron(FSM):
                     self.info('We\'re all {} changing to {}!'.format(len(group)+1, pub))
                     capacity = self.env.return_occupancy(pub)
                     self.info('{} now has {} people inside'.format(pub,capacity))
+
+                    self['num_of_changes'] = self['num_of_changes']  + 1
+                    for friend in group:
+                        friend['num_of_changes'] = friend['num_of_changes']  + 1
                     
                     return
                     
                 else:
                     self.info("We can\'t go inside {}. There are {} people inside and is {}".format(pub, self.env.return_occupancy(pub),self.env.return_open(pub)))
-                    for friend in group:
-                        friend.set_state(self.at_home)
-                    
-                    self.set_state(self.at_home)
+        
+        self.info('Al final no pudimos cambiar a ninguno y nos quedamos en este')
+
           ##Si no puede entrar después de todas la iteraciones dar alternativa dependiendo
           #del caso. Si no pueden por precio (se quedan donde están), o si no pueden por horario (se quedan donde están)
                 #O no caben: , vuelven a otro del tipo anterior donde estaban
@@ -891,6 +907,8 @@ class Police(FSM):
         '''Abre o cierra los bares'''
         pubs = self.env.get_venues() 
 
+        self.debug('CONTADOR:')
+        self.debug('Ya hay {} Patrons en su casa'.format(len(list(self.get_agents(state_id=Patron.at_home.id)))))
 
         for pub in pubs:
 
@@ -899,6 +917,8 @@ class Police(FSM):
                 self.info('El {} ha abierto'.format(pub))
 
             
+
+            self.debug('{} tiene dentro {} personas'.format(self.env.return_name(pub),self.env.return_occupancy(pub)))
             if self.now == self.env.return_closing_time(pub):
                 self.env.set_close(pub)
                 self.info('El {} ha cerrado con {} personas dentro'.format(pub, self.env.return_occupancy(pub)))

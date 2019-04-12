@@ -6,7 +6,7 @@ dump: false
 network_params:
   
   generator: empty_graph
-  n: 30
+  n: 50
 
 network_agents:
   - agent_type: pubcrawl.Patron
@@ -80,6 +80,6 @@ environment_agents:
 environment_class: pubcrawl.CityPubs
 environment_params:
   number_of_pubs: 2
-  number_of_discos: 0
-  number_of_street: 0
+  number_of_discos: 2
+  number_of_street: 2
   
