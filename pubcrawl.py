@@ -47,7 +47,7 @@ class CityPubs(Environment):
                             'price':randint(7, 12),
                             'type': Venues.disco.value,
                             'entry': randint(15,20),
-                            'opening_time': 1, #ES el10!!
+                            'opening_time': 10, #ES el10!!
                             'closing_time': randint(32,36),
                         }
                         pubs[newpub['name']] = newpub
@@ -247,6 +247,9 @@ class Patron(FSM):
         'going_out_time':10,
         'coming_back_time':16,
         'group_size':0,
+        'prob_fight':0,
+        'num_of_fights':0,
+        'in_a_fight':False,
 
     }
 
@@ -616,12 +619,157 @@ class Patron(FSM):
 
         group = list(self.get_neighboring_agents())
 
-        
+
         #Comprobar si hay razón para irse a casa
 
-           
-            #Por cosas relacionadas con peleas
+            #Amigo intoxicado o pelea
 
+        for friend in group:
+            if (friend['intoxicated']==True) or (friend['in_a_fight']==True):
+                r = random()
+                if r<0.7:
+                    self.debug('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
+                    return self.at_home;
+                    
+
+                else:
+                    self.debug('No ha tocado irse , amigo {} intoxicado/peleado'.format(friend.id))
+            
+
+            #Es hora de irse a casa
+        if self.now == self['coming_back_time']:
+
+            self.info('Es mi hora de irme a casa')
+            return self.at_home
+            
+
+            # Quedan pocos amigos
+
+        friends_remaining = len(list(self.get_neighboring_agents()))
+
+        
+
+        if ((self['group_size'] * 0.5) >= friends_remaining+1) or (friends_remaining==0):
+            self.info('Me voy a casa porque habíamos salido {} y solo quedamos {}'.format(self['group_size'], friends_remaining+1))
+            for friend in group:
+                friend.set_state(self.at_home)
+                
+            return self.at_home
+
+            #Check if a Patron has had a fight. It goes home
+
+        if self['in_a_fight']==True:
+            return self.at_home
+
+        #Option of drinking a beverage
+        self.drink()
+    
+        #Set prob_fight
+
+        if self['age']==15 or self['age']==20:
+            if self['gender']=="male":
+                self['prob_fight']= 0.02 * self['pints']
+            else:
+                self['prob_fight']= 0.01 * self['pints']
+
+        if self['age']==25:
+            if self['gender']=="male":
+                self['prob_fight']= 0.015 * self['pints']
+            else:
+                self['prob_fight']= 0.01 * self['pints']
+
+        
+
+        #Option of having a fight
+        if self['in_a_fight']==False:
+            r = random()
+            if r<self['prob_fight']:
+            
+                self.fight()
+        
+       
+        #Set prob_change_bar
+
+        type = self.env.return_type(self['pub'])
+      
+        if(type=="disco"):
+            self['prob_change_bar'] = 0
+
+        else:
+            self['prob_change_bar'] = 0.2
+
+
+        #Option of changing pub if you are a leader
+
+        if (self['is_leader'] and self['prob_change_bar']>random()) or (self['is_leader'] and not self.env.return_open(self['pub'])):
+            self.change_bar()
+            
+
+        #Set prob_drink
+        if self.now == (self['going_out_time']+4):
+            if self['age']==15 or self['age']==20:
+                if self['gender']=="male":
+                    self['prob_drink']=0.4
+                else:
+                    self['prob_drink']=0.25
+
+            if self['age']==25:
+                if self['gender']=="male":
+                    self['prob_drink']=0.3
+                else:
+                    self['prob_drink']=0.25
+                
+
+
+        if self.now == (self['going_out_time']+8):
+            if self['gender']=="male":
+                self['prob_drink']=0.25
+            else:
+                self['prob_drink']=0.2
+
+        
+
+        #Check if the Patron is drunk
+        if self['pints'] > self['max_pints']:
+            self['drunk'] = True
+            self.info('I\'m so drunk.')
+            return self.drunk_in_pub
+
+        
+
+        
+
+
+    @state
+    def drunk_in_pub(self):
+        #Comrpobar si hhay razón para irse a casa
+        #Option of having a fight
+        #Set prob_change
+        #Option of changing pub if you are a leader
+        #Option of drinking a beverage
+        #Check if the Patron is drunk
+        
+        #Set prob_fight
+        #Set prob_drink
+        
+        group = list(self.get_neighboring_agents())
+
+
+        #Comprobar si hay razón para irse a casa
+
+            #Amigo intoxicado o pelea
+
+        for friend in group:
+            if (friend['intoxicated']==True) or (friend['in_a_fight']==True):
+                r = random()
+                if r<0.7:
+                    self.debug('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
+                    return self.at_home;
+                    
+
+                else:
+                    self.debug('No ha tocado irse , amigo {} intoxicado/peleado'.format(friend.id))
+            
 
             #Es hora de irse a casa
         if self.now == self['coming_back_time']:
@@ -644,22 +792,45 @@ class Patron(FSM):
             return self.at_home
 
 
-    
+            #Check if the Patron is intoxicated
+        if self['pints'] > self['intoxication_drinkthreshold']:
+            self.info('I got intoxicated')
+            self['intoxicated'] = True
+            return self.at_home
 
+
+        #Check if a Patron has had a fight. It goes home
+
+        if self['in_a_fight']==True:
+            return self.at_home
+
+        #Option of drinking a beverage
+        self.drink()
+    
+        #Set prob_fight
+
+        if self['age']==15 or self['age']==20:
+            if self['gender']=="male":
+                self['prob_fight']= 0.025 * self['pints']
+            else:
+                self['prob_fight']= 0.015 * self['pints']
+
+        if self['age']==25:
+            if self['gender']=="male":
+                self['prob_fight']= 0.02 * self['pints']
+            else:
+                self['prob_fight']= 0.015 * self['pints']
+
+        
 
         #Option of having a fight
-        
-        
+        if self['in_a_fight']==False:
+            r = random()
+            if r<self['prob_fight']:
+            
+                self.fight()
         
        
-        #Set prob_fight
-        
-
-        
-
-
-
-
         #Set prob_change_bar
 
         type = self.env.return_type(self['pub'])
@@ -676,43 +847,31 @@ class Patron(FSM):
         if (self['is_leader'] and self['prob_change_bar']>random()) or (self['is_leader'] and not self.env.return_open(self['pub'])):
             self.change_bar()
             
-        #Option of drinking a beverage
-        self.drink()
 
         #Set prob_drink
+        if self.now == (self['going_out_time']+4):
+            if self['age']==15 or self['age']==20:
+                if self['gender']=="male":
+                    self['prob_drink']=0.4
+                else:
+                    self['prob_drink']=0.25
+
+            if self['age']==25:
+                if self['gender']=="male":
+                    self['prob_drink']=0.3
+                else:
+                    self['prob_drink']=0.25
+                
 
 
+        if self.now == (self['going_out_time']+8):
+            if self['gender']=="male":
+                self['prob_drink']=0.25
+            else:
+                self['prob_drink']=0.2
 
-        #Check if the Patron is drunk
-        if self['pints'] > self['max_pints']:
-            self['drunk'] = True
-            self.info('I\'m so drunk.')
-            return self.drunk_in_pub
 
-    @state
-    def drunk_in_pub(self):
-        #Comrpobar si hhay razón para irse a casa
-        #Option of having a fight
-        #Set prob_change
-        #Option of changing pub if you are a leader
-        #Option of drinking a beverage
-        #Check if the Patron is drunk
-        #Set prob_fight
-        #Set prob_drink
-        
-
-        if (self['is_leader'] and self['prob_change_bar']>random()) or (self['is_leader'] and not self.env.return_open(self['pub'])):
-            self.change_bar()
-            
-
-        
-        self.drink()
-
-        if self['pints'] > self['intoxication_drinkthreshold']:
-            self.info('I got intoxicated')
-            self['intoxicated'] = True
-            return self.at_home
-
+    
     
 
     @state
@@ -729,7 +888,8 @@ class Patron(FSM):
             self.env.set_occupancy(self['pub'], occupancy-1)
             self.info('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
             self['pub']=None
-        
+        else:
+            self.info('No tenía bar. Me han debido hacer kick out')
 
         self.die(remove=True)
     
@@ -825,7 +985,25 @@ class Patron(FSM):
 
         
 
+    def fight(self):
+        fighters = list(self.get_agents(pub=self['pub']))
+        shuffle(fighters)
 
+        if (len(fighters)==0):
+            self.info('No hay nadie con quien pelear')
+            return
+
+        election = fighters[0]
+        for fighter in fighters:
+            if fighter['prob_fight']>election['prob_fight']:
+                election = fighter
+
+        self.info('Me peleo con {}'.format(election.id))
+
+        self['in_a_fight']=True
+        election['in_a_fight']=True
+        self['num_of_fights']+=1
+        election['num_of_fights']+=1
 
     
     def drink(self):
@@ -840,7 +1018,14 @@ class Patron(FSM):
             self.debug('The price is {} € at {}'.format(price,self['pub']))
 
     def kick_out(self):
-        self.set_state(self.at_home)
+
+        occupancy = self.env.return_occupancy(self['pub'])
+        self.env.set_occupancy(self['pub'], occupancy-1)
+        self.info('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
+        self['pub']=None
+        
+
+        #self.set_state(self.at_home)
 
     def befriend(self, other_agent):
         '''
@@ -897,12 +1082,13 @@ class Patron(FSM):
                         
 
 class Police(FSM):
-    '''Simple agent to take intoxicated people out of pubs.'''
+    
     level = logging.INFO
 
     @default_state
     @state
     def patrol(self):
+
 
         '''Abre o cierra los bares'''
         pubs = self.env.get_venues() 
@@ -933,7 +1119,21 @@ class Police(FSM):
 
 
         '''Echará a los que se han peleado en un local'''
+        agent = list(self.get_agents(in_a_fight=True))
+        for agent in agents:
+            if (self.env.return_type(agent['pub'])=="disco") or (self.env.return_type(agent['pub'])=="pub"):
+                self.info('Kicking out the fight agents: {}'.format(agent.id))
+                agent.kick_out()
+                #Tenemos en cuenta que un agente que se pelea se va a casa. Sus amigos ya verán si se van. SI es así, tengo que
+                #poner en sober y frunk que se vayam los peleados
 
+            
+
+
+         '''Pequeña funcionalidad que viene bien poner aquí'''
+        agent = list(self.get_agents(in_a_fight=True))
+        for agent in agents:
+            agent['in_a_fight']==False
 
 
         '''Politicas a probar'''
@@ -941,3 +1141,11 @@ class Police(FSM):
                                     if self.now == 15:
                                         self.env.set_capacity(pub,0)"""
 
+'''
+Ahora mismo alguien que se pelea le echan y entonces se va a casa. Se podría hacer que le echaran 
+y entonces su grupo de amigo cambia de venue. Quizás algunos se vayan.
+
+Cosas que comprobar:
+Que el orden de las llamadas en sober_in_pub y drunk_in_pub es el orden correcto para que por ejemplo 
+no cambien de estado a drunk_in_pub cuando antes debería cambiar a at_home.
+'''
