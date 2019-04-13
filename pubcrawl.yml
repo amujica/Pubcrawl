@@ -80,6 +80,6 @@ environment_agents:
 environment_class: pubcrawl.CityPubs
 environment_params:
   number_of_pubs: 5
-  number_of_discos: 0
+  number_of_discos: 2
   number_of_street: 2
   

@@ -516,6 +516,8 @@ class Patron(FSM):
     @state
     def looking_for_pub(self):
 
+        self.debug('Salimos, nuestra hora era {}'.format(self['going_out_time']))
+
         '''Look for a pub that accepts me and my friends'''
         if self['pub'] != None:
             return self.sober_in_pub
@@ -879,7 +881,7 @@ class Patron(FSM):
     @state
     def at_home(self):
         '''The end'''
-        self.info('Life sucks. I\'m home!')
+        self.debug('Life sucks. I\'m home!')
         if self['is_leader']==True:
             group = list(self.get_neighboring_agents())
             self.env.reelect_leader(*group)
@@ -1028,7 +1030,7 @@ class Patron(FSM):
 
         occupancy = self.env.return_occupancy(self['pub'])
         self.env.set_occupancy(self['pub'], occupancy-1)
-        self.debug('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
+        self.info('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
         self['pub']=None
         
 
