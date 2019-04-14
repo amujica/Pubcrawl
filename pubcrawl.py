@@ -117,6 +117,15 @@ class CityPubs(Environment):
         pub = self['pubs'][pub_name]
         pub['occupancy'] = number  
 
+    def set_price(self,pub_name, number):
+        pub = self['pubs'][pub_name]
+        pub['price'] = number  
+
+    def set_closing_time(self,pub_name, number):
+        pub = self['pubs'][pub_name]
+        pub['closing_time'] = number  
+
+
 
     def enter(self, pub_name, *nodes):
 
@@ -928,7 +937,7 @@ class Patron(FSM):
 
         elif(type== "pub"):
 
-            if self['num_of_changes']>=1:
+            if self['num_of_changes']>4:
                 available_pubs = self.env.available_pubs()
 
             else:
@@ -1140,15 +1149,66 @@ class Police(FSM):
 
 
         '''Pequeña funcionalidad que viene bien poner aquí'''
-        agent = list(self.get_agents(in_a_fight=True))
+       
         for agent in agents:
             agent['in_a_fight']==False
 
 
         '''Politicas a probar'''
-        """for pub in pubs:
-                                    if self.now == 15:
-                                        self.env.set_capacity(pub,0)"""
+
+        
+        #A partir de las 2am no se puede vender alcohol, en los pubs y discos
+        if self.now == 18:
+            self.info('Política aplicada: no se vende ya más alcohol. Son las 2am')
+            for pub in pubs:
+                if (self.env.return_type(pub)=="pub" or self.env.return_type(pub)=="disco"):
+                    self.env.set_price(pub,200)
+
+        
+
+        #No vender alcohol a menores en todo el modelo
+
+                #Función drink
+
+        #Precios minimos para el alcohol. Subimos los precios un 20%
+        
+        percentage = 0.2
+        if self.now == 1:
+            self.info('Subida de los precios en un {} %'.format(percentage*100))
+            for pub in pubs:
+                
+                self.env.set_price(pub,self.env.return_price(pub)*(1+percentage))
+
+        
+
+        #No se puede hacer public drinking
+        agents = list(self.get_agents(is_leader=True))
+        for agent in agents:
+            if self.env.return_type(agent['pub'])=="street":
+                self.info('Hay policia en la zona de botellón. Nos vamos a otro lado')
+                agent.change_bar()
+
+
+
+
+        #A partir de las 2:30am en bares y 5am en discos ya solo se puede salir
+
+
+        #Limitar el horario de los venues para que cierren más pronto
+        #Todas las discos cierran a las 5am y los bares a las 2am:
+        if self.now == 1:
+            self.info('Limitación de horarios')
+        for pub in pubs:
+            if (self.env.return_type(pub)=="disco"):
+                self.env.set_closing_time(pub,30) 
+
+
+            elif (self.env.return_type(pub)=="pub"):
+                self.env.set_closing_time(pub,18) 
+
+
+
+
 
 '''
 Ahora mismo alguien que se pelea le echan y entonces se va a casa. Se podría hacer que le echaran 
