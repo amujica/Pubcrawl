@@ -29,7 +29,7 @@ class CityPubs(Environment):
                         newpub = {
                             'name': 'The awesome pub #{}'.format(i),
                             'open': False,
-                            'capacity': numpy.random.normal(100,25),
+                            'capacity': numpy.random.normal(100,20),
                             'occupancy': 0,
                             'price':randint(5, 8),
                             'type': Venues.pub.value,
@@ -42,7 +42,7 @@ class CityPubs(Environment):
                         newpub = {
                             'name': 'The awesome disco #{}'.format(i),
                             'open': False,
-                            'capacity': numpy.random.normal(1300,500) ,
+                            'capacity': numpy.random.normal(1300,300) ,
                             'occupancy': 0,
                             'price':randint(7, 12),
                             'type': Venues.disco.value,
@@ -124,6 +124,10 @@ class CityPubs(Environment):
     def set_closing_time(self,pub_name, number):
         pub = self['pubs'][pub_name]
         pub['closing_time'] = number  
+
+    def set_entry (self,pub_name, number):
+        pub = self['pubs'][pub_name]
+        pub['entry'] = number  
 
 
 
@@ -274,7 +278,7 @@ class Patron(FSM):
             if self['gender']=="female":
                 self['max_pints']=numpy.random.normal(3,0.5)
             else:
-                self['max_pints']=numpy.random.normal(4,0.5)
+                self['max_pints']=numpy.random.normal(4,1)
 
         elif self['age']==20:
             if self['gender']=="female":
@@ -296,9 +300,9 @@ class Patron(FSM):
         '''Setting money'''
         if self['age']==15:
             if self['gender']=="female":
-                self['money']=numpy.random.normal(25,5)
+                self['money']=numpy.random.normal(25,3)
             else:
-                self['money']=numpy.random.normal(25,7)
+                self['money']=numpy.random.normal(25,5)
 
         elif self['age']==20:
             if self['gender']=="female":
@@ -310,7 +314,7 @@ class Patron(FSM):
             if self['gender']=="female":
                 self['money']=numpy.random.normal(60,10)
             else:
-                self['money']=numpy.random.normal(65,10)
+                self['money']=numpy.random.normal(65,15)
 
 
 
@@ -899,10 +903,10 @@ class Patron(FSM):
         if (self['pub']!=None):
             occupancy = self.env.return_occupancy(self['pub'])
             self.env.set_occupancy(self['pub'], occupancy-1)
-            self.info('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
+            self.debug('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
             self['pub']=None
         else:
-            self.info('No tenía bar. Me han debido hacer kick out')
+            self.debug('No tenía bar. Me han debido hacer kick out')
 
         self.die(remove=True)
     
@@ -1027,8 +1031,9 @@ class Patron(FSM):
     def drink(self):
         price = self.env.return_price(self['pub'])
         
+        #Políticas no vender a menores
             
-        if(self['prob_drink']>random() and price<self['money']):
+        if(self['prob_drink']>random() and price<self['money']): #and self['age']<18S:
             self['pints'] = self['pints'] + 1
             self['money'] = self['money'] -  price
             self.debug('Cheers to that')
@@ -1111,7 +1116,7 @@ class Police(FSM):
         '''Abre o cierra los bares'''
         pubs = self.env.get_venues() 
 
-        self.info('CONTADOR:')
+        self.debug('CONTADOR:')
         self.debug('Ya hay {} Patrons en su casa'.format(len(list(self.get_agents(state_id=Patron.at_home.id)))))
 
         for pub in pubs:
@@ -1122,7 +1127,7 @@ class Police(FSM):
 
             
 
-            self.info('{} tiene dentro {} personas'.format(self.env.return_name(pub),self.env.return_occupancy(pub)))
+            self.debug('{} tiene dentro {} personas'.format(self.env.return_name(pub),self.env.return_occupancy(pub)))
             if self.now == self.env.return_closing_time(pub):
                 self.env.set_close(pub)
                 self.info('El {} ha cerrado con {} personas dentro'.format(pub, self.env.return_occupancy(pub)))
@@ -1156,14 +1161,14 @@ class Police(FSM):
 
         '''Politicas a probar'''
 
-        
+        '''
         #A partir de las 2am no se puede vender alcohol, en los pubs y discos
         if self.now == 18:
             self.info('Política aplicada: no se vende ya más alcohol. Son las 2am')
             for pub in pubs:
                 if (self.env.return_type(pub)=="pub" or self.env.return_type(pub)=="disco"):
                     self.env.set_price(pub,200)
-
+        '''
         
 
         #No vender alcohol a menores en todo el modelo
@@ -1171,16 +1176,16 @@ class Police(FSM):
                 #Función drink
 
         #Precios minimos para el alcohol. Subimos los precios un 20%
-        
+        '''
         percentage = 0.2
         if self.now == 1:
             self.info('Subida de los precios en un {} %'.format(percentage*100))
             for pub in pubs:
                 
                 self.env.set_price(pub,self.env.return_price(pub)*(1+percentage))
-
+        '''
         
-
+        '''
         #No se puede hacer public drinking
         agents = list(self.get_agents(is_leader=True))
         for agent in agents:
@@ -1188,14 +1193,26 @@ class Police(FSM):
                 self.info('Hay policia en la zona de botellón. Nos vamos a otro lado')
                 agent.change_bar()
 
+        '''
 
 
+        #A partir de las 2:30am en bares y 5am en discos ya solo se puede salir 
 
-        #A partir de las 2:30am en bares y 5am en discos ya solo se puede salir
+        if self.now == 20: 
+            
+            for pub in pubs:
+                if self.env.return_type(pub)=="pub":
+                    self.env.set_entry(pub,3000)
+
+        if self.now == 30:
+            for pub in pubs:
+                if self.env.return_type(pub)=="disco":
+                    self.env.set_entry(pub,3000)
 
 
         #Limitar el horario de los venues para que cierren más pronto
         #Todas las discos cierran a las 5am y los bares a las 2am:
+        '''
         if self.now == 1:
             self.info('Limitación de horarios')
         for pub in pubs:
@@ -1206,16 +1223,7 @@ class Police(FSM):
             elif (self.env.return_type(pub)=="pub"):
                 self.env.set_closing_time(pub,18) 
 
+        '''
 
 
 
-
-'''
-Ahora mismo alguien que se pelea le echan y entonces se va a casa. Se podría hacer que le echaran 
-y entonces su grupo de amigo cambia de venue. Quizás algunos se vayan.
-
-Cosas que comprobar:
-Que el orden de las llamadas en sober_in_pub y drunk_in_pub es el orden correcto para que por ejemplo 
-no cambien de estado a drunk_in_pub cuando antes debería cambiar a at_home.
-
-'''

@@ -6,7 +6,7 @@ dump: false
 network_params:
   
   generator: empty_graph
-  n: 400
+  n: 150
 
 network_agents:
   - agent_type: pubcrawl.Patron
@@ -14,7 +14,6 @@ network_agents:
     state:
       prob_drink: 0.5
       prob_change_bar: 0.2
-      max_pints: 4
       gender: male
       age: 15
       
@@ -25,7 +24,6 @@ network_agents:
     state:
       prob_drink: 0.4
       prob_change_bar: 0.2
-      max_pints: 3
       gender: female
       age: 15
       
@@ -36,29 +34,26 @@ network_agents:
     state:
       prob_drink: 0.5
       prob_change_bar: 0.2
-      max_pints: 6
       gender: male
       age: 20
       
-    weight: 15
+    weight: 20
 
   - agent_type: pubcrawl.Patron
     description: 20-24 year old female
     state:
       prob_drink: 0.4
       prob_change_bar: 0.2
-      max_pints: 4
       gender: female
       age: 20
       
-    weight: 15
+    weight: 20
 
   - agent_type: pubcrawl.Patron
     description: 25-30 year old male
     state:
       prob_drink: 0.4
       prob_change_bar: 0.2
-      max_pints: 6
       gender: male
       age: 25
       
@@ -69,11 +64,10 @@ network_agents:
     state:
       prob_drink: 0.4
       prob_change_bar: 0.2
-      max_pints: 4
       gender: female
       age: 25
       
-    weight: 25
+    weight: 15
 
 environment_agents:
   - agent_type: pubcrawl.Police
