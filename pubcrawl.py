@@ -206,38 +206,41 @@ class CityPubs(Environment):
 
 
     #Un grupo se va de un pub. La sintaxis "del" es como decir que te vacíe esa variable
-    """def exit(self, pub_id, *node_ids):
-                    '''Agents will notify the pub they want to leave'''
-                    try:
-                        pub = self['pubs'][pub_id]
-                    except KeyError:
-                        raise ValueError('Pub {} is not available'.format(pub_id))
-                    for node_id in node_ids:
-                        node = self.get_agent(node_id)
-                        if pub_id == node['pub']:
-                            del node['pub']
-                            pub['occupancy'] -= 1
-            
-                def exit(self, pub_id, *nodes):
-                    '''Agents will notify the pub they want to leave'''
-                    try:
-                        pub = self['pubs'][pub_id]
-                    except KeyError:
-                        raise ValueError('Pub {} is not available'.format(pub_id))
-                    for node in nodes:
-                     
-                        if pub_id == node['pub']:
-                            del node['pub']
-                            pub['occupancy'] -= 1
-            """
+    '''
+    def exit(self, pub_name, *node_ids):
+                    
+        try:
+            pub = self['pubs'][pub_name]
+        except KeyError:
+            raise ValueError('Pub {} is not available'.format(pub_name))
+
+        for node_id in node_ids:
+            #node = self.get_agent(node_id)
+            if pub_name == node_id['pub']:
+                del node['pub']
+                pub['occupancy'] -= 1
+
+
+    '''
+
     def exit(self, pub_name, *nodes):
 
         try:
             pub = self['pubs'][pub_name]
         except KeyError:
             raise ValueError('Pub {} is not available'.format(pub_name))
-        
-        pub['occupancy'] -= len(nodes)
+        for node in nodes:
+            pub['occupancy'] -= 1
+
+
+    def exit_single(self, pub_name, agent):
+
+        try:
+            pub = self['pubs'][pub_name]
+        except KeyError:
+            raise ValueError('Pub {} is not available'.format(pub_name))
+        pub['occupancy']-=1
+        #agent['pub']=None
 
     
     
@@ -473,13 +476,14 @@ class Patron(FSM):
                                                      age=self['age']))
                                                      
             if not available_friends or len(available_friends)==1:
-                self.info('Life sucks and I\'m alone!')
+                self.info('No encuentro amigos')
                 return self.at_home
 
             befriended = self.try_friends(available_friends)
             if befriended:
 
                 group = list(self.get_neighboring_agents())
+
 
 
                 r=random()
@@ -581,9 +585,11 @@ class Patron(FSM):
             self.info('No había discos y me voy mejor a un bar')
 
         if (len(available_pubs)) == 0:
-            self.info('Tampoco hay bares, así que mejor nos vamos a casa')
+            
             for friend in group:
                 friend.set_state(self.at_home)
+                self.info('Tampoco hay bares, así que mejor nos vamos a casa. Soy {}'.format(friend.id))
+            
             return self.at_home
 
 
@@ -614,14 +620,16 @@ class Patron(FSM):
                 else:
                     self.info("We can\'t go inside {}".format(pub))
 
-            self.info('No hay bares por donde salir. Nos vamos')
+            
             for friend in group:
                 friend.set_state(self.at_home)
+                self.info('No hay bares por donde salir. Nos vamos. Soy {}'.format(friend.id))
             return self.at_home
 
         else:
-            self.info('No hay bares por donde salir. Nos vamos')
+            
             for friend in group:
+                self.info('No hay bares por donde salir. Nos vamos. Soy {}'.format(friend.id))
                 friend.set_state(self.at_home)
             return self.at_home
 
@@ -635,18 +643,35 @@ class Patron(FSM):
     def sober_in_pub(self):
 
         group = list(self.get_neighboring_agents())
+        
+        for member in group:
+            self.debug('Este agente está en la lista de group: {}.'.format(member.id))
+        
+        at_homes = list(self.get_agents(state_id=Patron.at_home.id))
 
+        for at_home in at_homes:
+            self.debug('Este agente está en la lista de at_homes: {}.'.format(at_home.id))
+            if at_home in group:
+
+                group.remove(at_home)
+        
 
         #Comprobar si hay razón para irse a casa
 
             #Amigo intoxicado o pelea
 
         for friend in group:
-            if (friend['intoxicated']==True) or (friend['in_a_fight']==True):
+            if (friend['intoxicated']) or (friend['in_a_fight']):
                 r = random()
                 if r<0.7:
-                    self.debug('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
-                    return self.at_home;
+                    self.info('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
+                    
+                    self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+
+                    self.env.exit_single(self['pub'],self.get_agent(self.id))
+
+                    self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+                    return self.at_home
                     
 
                 else:
@@ -656,7 +681,14 @@ class Patron(FSM):
             #Es hora de irse a casa
         if self.now == self['coming_back_time']:
 
+            agente = self.get_agent(self.id)
+            self.info('EL id es: {} '.format(agente.id))
             self.info('Es mi hora de irme a casa')
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+
+            self.env.exit_single(self['pub'], self.get_agent(self.id))
+
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
             return self.at_home
             
 
@@ -668,14 +700,25 @@ class Patron(FSM):
 
         if ((self['group_size'] * 0.5) >= friends_remaining+1) or (friends_remaining==0):
             self.info('Me voy a casa porque habíamos salido {} y solo quedamos {}'.format(self['group_size'], friends_remaining+1))
+            self.env.exit(self['pub'],self, *group)
             for friend in group:
+                self.info('Ya somos pocos los que quedamos. Me voy, soy {}'.format(friend.id))
                 friend.set_state(self.at_home)
-                
-            return self.at_home
+            
+            #Quizas no es necesario
+            #self.env.exit(self['pub'],self, self.get_agent(self.id))
+            return self.at_home #Nunca pasa por aquí creo
 
             #Check if a Patron has had a fight. It goes home
 
-        if self['in_a_fight']==True:
+        if self['in_a_fight']:
+            
+            
+            self.info('Me he peleado con alguien y me voy. Soy {}'.format(self.id))
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+
+            self.env.exit_single(self['pub'], self.get_agent(self.id))
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
             return self.at_home
 
         #Option of drinking a beverage
@@ -759,29 +802,38 @@ class Patron(FSM):
 
     @state
     def drunk_in_pub(self):
-        #Comrpobar si hhay razón para irse a casa
-        #Option of having a fight
-        #Set prob_change
-        #Option of changing pub if you are a leader
-        #Option of drinking a beverage
-        #Check if the Patron is drunk
-        
-        #Set prob_fight
-        #Set prob_drink
+   
         
         group = list(self.get_neighboring_agents())
+        
+        for member in group:
+            self.debug('Este agente está en la lista de group: {}.'.format(member.id))
+        
+        at_homes = list(self.get_agents(state_id=Patron.at_home.id))
 
+        for at_home in at_homes:
+            self.debug('Este agente está en la lista de at_homes: {}.'.format(at_home.id))
+            if at_home in group:
+
+                group.remove(at_home)
+        
 
         #Comprobar si hay razón para irse a casa
 
             #Amigo intoxicado o pelea
 
         for friend in group:
-            if (friend['intoxicated']==True) or (friend['in_a_fight']==True):
+            if (friend['intoxicated']) or (friend['in_a_fight']):
                 r = random()
                 if r<0.7:
-                    self.debug('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
-                    return self.at_home;
+                    self.info('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
+                    #self.info('El bar es: {}'.format(self['pub']))
+                    self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+
+                    self.env.exit_single(self['pub'],self.get_agent(self.id))
+
+                    self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+                    return self.at_home
                     
 
                 else:
@@ -792,6 +844,11 @@ class Patron(FSM):
         if self.now == self['coming_back_time']:
 
             self.info('Es mi hora de irme a casa')
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+
+            self.env.exit_single(self['pub'], self.get_agent(self.id))
+
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
             return self.at_home
             
 
@@ -803,23 +860,39 @@ class Patron(FSM):
 
         if ((self['group_size'] * 0.5) >= friends_remaining+1) or (friends_remaining==0):
             self.info('Me voy a casa porque habíamos salido {} y solo quedamos {}'.format(self['group_size'], friends_remaining+1))
+            self.env.exit(self['pub'],self, *group)
             for friend in group:
+                self.info('Ya somos pocos los que quedamos. Me voy, soy {}'.format(friend.id))
                 friend.set_state(self.at_home)
-                
+            
+            #Quizas no es necesario
+            #self.env.exit(self['pub'],self, self.get_agent(self.id))
+            return self.at_home #Nunca pasa por aquí creo
+
+            #Check if a Patron has had a fight. It goes home
+
+        if self['in_a_fight']:
+            
+            self.info('Me he peleado con alguien y me voy. Soy {}'.format(self.id))
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+
+            self.env.exit_single(self['pub'], self.get_agent(self.id))
+
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
             return self.at_home
+
 
 
             #Check if the Patron is intoxicated
         if self['pints'] > self['intoxication_drinkthreshold']:
-            self.info('I got intoxicated')
-            self['intoxicated'] = True
+            self.info('I got intoxicated. I go home: {}'.format(self.id))
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+
+            self.env.exit_single(self['pub'], self.get_agent(self.id))
+
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
             return self.at_home
 
-
-        #Check if a Patron has had a fight. It goes home
-
-        if self['in_a_fight']==True:
-            return self.at_home
 
         #Option of drinking a beverage
         self.drink()
@@ -894,21 +967,26 @@ class Patron(FSM):
     @state
     def at_home(self):
         '''The end'''
-        self.debug('Life sucks. I\'m home!')
-        if self['is_leader']==True:
+        self.info('Life sucks. I\'m home!')
+        if self['is_leader']:
             group = list(self.get_neighboring_agents())
             self.env.reelect_leader(*group)
 
-
+        self['pub']=None
+        '''
         if (self['pub']!=None):
+            self.info('NO DEBERÍA ENTRAR AQUÍ!. MI bar es el {}'.format(self['pub']))
+            
             occupancy = self.env.return_occupancy(self['pub'])
             self.env.set_occupancy(self['pub'], occupancy-1)
             self.debug('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
-            self['pub']=None
+            
+            
         else:
             self.debug('No tenía bar. Me han debido hacer kick out')
-
+        '''
         self.die(remove=True)
+
     
 
 
@@ -930,6 +1008,27 @@ class Patron(FSM):
         type = self.env.return_type(self['pub'])
 
         group = list(self.get_neighboring_agents())
+
+
+        self.info('Group tiene {} '.format(len(group)))
+
+        for member in group:
+            self.info('{}'.format(member.id))
+
+        for member in group:
+            self.debug('Este agente está en la lista de group: {}.'.format(member.id))
+        
+        at_homes = list(self.get_agents(state_id=Patron.at_home.id))
+
+        for at_home in at_homes:
+            self.debug('Este agente está en la lista de at_homes: {}.'.format(at_home.id))
+            if at_home in group:
+
+                group.remove(at_home)
+
+
+        self.info('... y ahora tiene {} '.format(len(group)))
+
         r= random()
 
 
@@ -966,9 +1065,10 @@ class Patron(FSM):
         if len(available_pubs) == 0:
 
             self.info("Nuestro plan se nos ha acabado")
+            self.env.exit(self['pub'],self, *group)
             for friend in group:
                 friend.set_state(self.at_home)
-                self.debug('Me voy a casa en un bucle de estos:{}'.format(friend.id))
+                self.info('Mi plan se ha acabado y me voy:{} '.format(friend.id))
             
             self.set_state(self.at_home)
             return
@@ -983,7 +1083,7 @@ class Patron(FSM):
                     self.env.exit(current_pub,self, *group)
                     self.info('We\'re all {} changing to {}!'.format(len(group)+1, pub))
                     capacity = self.env.return_occupancy(pub)
-                    self.info('{} now has {} people inside'.format(pub,capacity))
+                    self.info('{} now has {} people inside, and the previous one: {} has {}'.format(pub,capacity,current_pub,self.env.return_occupancy(current_pub)))
 
                     self['num_of_changes'] = self['num_of_changes']  + 1
                     for friend in group:
@@ -1003,24 +1103,44 @@ class Patron(FSM):
         
 
     def fight(self):
+
+        group = list(self.get_neighboring_agents())
+        election = None
+
+        for member in group:
+            self.debug('Este agente está en la lista de group: {}.'.format(member.id))
+        
+        at_homes = list(self.get_agents(state_id=Patron.at_home.id))
+
+        for at_home in at_homes:
+            self.debug('Este agente está en la lista de at_homes: {}.'.format(at_home.id))
+            if at_home in group:
+
+                group.remove(at_home)
+
         fighters = list(self.get_agents(pub=self['pub']))
         shuffle(fighters)
-        #fighters.remove('xyz');
-
 
         if (len(fighters)==1):
             self.info('No hay nadie con quien pelear')
+            return 
+
+        for fighter in fighters:
+            if fighter.id!=self.id and (fighter not in group):
+                election = fighter
+                #break
+        if election != None:
+
+            for fighter in fighters:
+                if (fighter['prob_fight']>election['prob_fight']) and (fighter.id!=self.id) and (not fighter['in_a_fight']) and (fighter not in group):
+                    election = fighter
+
+
+        else:
+            
             return
 
-        for fighter in fighters:
-            if fighter.id!=self.id:
-                election = fighter
-        
-        for fighter in fighters:
-            if (fighter['prob_fight']>election['prob_fight']) and (fighter.id!=self.id) and (not fighter['in_a_fight']):
-                election = fighter
-
-        self.info('Me peleo con {}'.format(election.id))
+        self.info('Me peleo con {} '.format(election.id))
 
         self['in_a_fight']=True
         election['in_a_fight']=True
@@ -1041,12 +1161,15 @@ class Patron(FSM):
             self.debug('The price is {} € at {}'.format(price,self['pub']))
 
     def kick_out(self):
-
+        #self.env.exit(self['pub'],self, self.get_agent(self.id)) #ARREGLAR
+        self.info('Echo al agente: {}'.format(self.id))
+        #return self.at_home
+        '''
         occupancy = self.env.return_occupancy(self['pub'])
         self.env.set_occupancy(self['pub'], occupancy-1)
         self.info('El venue tenia {} personas y ahora {}'.format(occupancy, self.env.return_occupancy(self['pub']) ))
         self['pub']=None
-        
+        '''
 
         #self.set_state(self.at_home)
 
@@ -1116,7 +1239,7 @@ class Police(FSM):
         '''Abre o cierra los bares'''
         pubs = self.env.get_venues() 
 
-        self.debug('CONTADOR:')
+        self.info('CONTADOR:')
         self.debug('Ya hay {} Patrons en su casa'.format(len(list(self.get_agents(state_id=Patron.at_home.id)))))
 
         for pub in pubs:
@@ -1127,7 +1250,7 @@ class Police(FSM):
 
             
 
-            self.debug('{} tiene dentro {} personas'.format(self.env.return_name(pub),self.env.return_occupancy(pub)))
+            self.info('{} tiene dentro {} personas'.format(self.env.return_name(pub),self.env.return_occupancy(pub)))
             if self.now == self.env.return_closing_time(pub):
                 self.env.set_close(pub)
                 self.info('El {} ha cerrado con {} personas dentro'.format(pub, self.env.return_occupancy(pub)))
@@ -1197,7 +1320,7 @@ class Police(FSM):
 
 
         #A partir de las 2:30am en bares y 5am en discos ya solo se puede salir 
-
+        '''
         if self.now == 20: 
             
             for pub in pubs:
@@ -1209,7 +1332,7 @@ class Police(FSM):
                 if self.env.return_type(pub)=="disco":
                     self.env.set_entry(pub,3000)
 
-
+        '''
         #Limitar el horario de los venues para que cierren más pronto
         #Todas las discos cierran a las 5am y los bares a las 2am:
         '''
@@ -1225,5 +1348,9 @@ class Police(FSM):
 
         '''
 
+'''
+Cada vez que se vaya un agente pasa por exit y luego si eso va ya a casa
+Cambiar los set por self.env[pubs] o lo que sea
 
 
+'''
