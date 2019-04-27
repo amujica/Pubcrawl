@@ -1,0 +1,86 @@
+default_state: {}
+dir_path: soil_output/Malasana_20
+dry_run: false
+dump: [csv, gexf]
+environment_agents:
+- {agent_type: pubcrawl.Police}
+environment_class: pubcrawl.CityPubs
+environment_params: {number_of_discos: 2, number_of_pubs: 5, number_of_street: 2}
+interval: 1
+max_time: 38
+name: Malasana_20
+network_agents:
+- agent_type: pubcrawl.Patron
+  description: 15-19 year old male
+  state: {age: 15, gender: male, prob_change_bar: 0.2, prob_drink: 0.5}
+  weight: 15
+- agent_type: pubcrawl.Patron
+  description: 15-19 year old female
+  state: {age: 15, gender: female, prob_change_bar: 0.2, prob_drink: 0.4}
+  weight: 15
+- agent_type: pubcrawl.Patron
+  description: 20-24 year old male
+  state: {age: 20, gender: male, prob_change_bar: 0.2, prob_drink: 0.5}
+  weight: 20
+- agent_type: pubcrawl.Patron
+  description: 20-24 year old female
+  state: {age: 20, gender: female, prob_change_bar: 0.2, prob_drink: 0.4}
+  weight: 20
+- agent_type: pubcrawl.Patron
+  description: 25-30 year old male
+  state: {age: 25, gender: male, prob_change_bar: 0.2, prob_drink: 0.4}
+  weight: 15
+- agent_type: pubcrawl.Patron
+  description: 25-30 year old female
+  state: {age: 25, gender: female, prob_change_bar: 0.2, prob_drink: 0.4}
+  weight: 15
+network_params: {generator: empty_graph, n: 40}
+num_trials: 1
+seed: None
+states: []
+topology:
+  directed: false
+  graph: {}
+  links: []
+  multigraph: false
+  nodes:
+  - {id: 0}
+  - {id: 1}
+  - {id: 2}
+  - {id: 3}
+  - {id: 4}
+  - {id: 5}
+  - {id: 6}
+  - {id: 7}
+  - {id: 8}
+  - {id: 9}
+  - {id: 10}
+  - {id: 11}
+  - {id: 12}
+  - {id: 13}
+  - {id: 14}
+  - {id: 15}
+  - {id: 16}
+  - {id: 17}
+  - {id: 18}
+  - {id: 19}
+  - {id: 20}
+  - {id: 21}
+  - {id: 22}
+  - {id: 23}
+  - {id: 24}
+  - {id: 25}
+  - {id: 26}
+  - {id: 27}
+  - {id: 28}
+  - {id: 29}
+  - {id: 30}
+  - {id: 31}
+  - {id: 32}
+  - {id: 33}
+  - {id: 34}
+  - {id: 35}
+  - {id: 36}
+  - {id: 37}
+  - {id: 38}
+  - {id: 39}
