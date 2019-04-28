@@ -1,12 +1,12 @@
 ---
-name: Malasana_20
+name: Malasana
 num_trials: 1
 max_time: 38
 dump: false
 network_params:
   
   generator: empty_graph
-  n: 40
+  n: 1500
 
 network_agents:
   - agent_type: pubcrawl.Patron
