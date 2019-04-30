@@ -1153,7 +1153,7 @@ class Patron(FSM):
         
         #Políticas no vender a menores
             
-        if(self['prob_drink']>random() and price<self['money']): #and self['age']<18S:
+        if(self['prob_drink']>random() and price<self['money']):# and self['age']<18:
             self['pints'] = self['pints'] + 1
             self['money'] = self['money'] -  price
             self.debug('Cheers to that')
@@ -1285,20 +1285,20 @@ class Police(FSM):
         '''Politicas a probar'''
 
         '''
-        #A partir de las 2am no se puede vender alcohol, en los pubs y discos
+        #A partir de las 2am no se puede vender alcohol, en los pubs y discos-Politica 1
         if self.now == 18:
             self.info('Política aplicada: no se vende ya más alcohol. Son las 2am')
             for pub in pubs:
                 if (self.env.return_type(pub)=="pub" or self.env.return_type(pub)=="disco"):
                     self.env.set_price(pub,200)
-        '''
         
+        '''
 
-        #No vender alcohol a menores en todo el modelo
+        #No vender alcohol a menores en todo el modelo -Politica 2
 
                 #Función drink
 
-        #Precios minimos para el alcohol. Subimos los precios un 20%
+        #Precios minimos para el alcohol. Subimos los precios un 20% - Politica 3
         '''
         percentage = 0.2
         if self.now == 1:
@@ -1308,18 +1308,18 @@ class Police(FSM):
                 self.env.set_price(pub,self.env.return_price(pub)*(1+percentage))
         '''
         
-        '''
-        #No se puede hacer public drinking
+        
+        #No se puede hacer public drinking - Politica 4
         agents = list(self.get_agents(is_leader=True))
         for agent in agents:
             if self.env.return_type(agent['pub'])=="street":
                 self.info('Hay policia en la zona de botellón. Nos vamos a otro lado')
                 agent.change_bar()
 
-        '''
+        
 
 
-        #A partir de las 2:30am en bares y 5am en discos ya solo se puede salir 
+        #A partir de las 2:30am en bares y 5am en discos ya solo se puede salir - Politica 5
         '''
         if self.now == 20: 
             
@@ -1333,7 +1333,7 @@ class Police(FSM):
                     self.env.set_entry(pub,3000)
 
         '''
-        #Limitar el horario de los venues para que cierren más pronto
+        #Limitar el horario de los venues para que cierren más pronto - Politica 6
         #Todas las discos cierran a las 5am y los bares a las 2am:
         '''
         if self.now == 1:
