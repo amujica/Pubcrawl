@@ -1308,7 +1308,7 @@ class Police(FSM):
                 self.env.set_price(pub,self.env.return_price(pub)*(1+percentage))
         '''
         
-        
+        '''
         #No se puede hacer public drinking - Politica 4
         agents = list(self.get_agents(is_leader=True))
         for agent in agents:
@@ -1316,7 +1316,7 @@ class Police(FSM):
                 self.info('Hay policia en la zona de botellón. Nos vamos a otro lado')
                 agent.change_bar()
 
-        
+        '''
 
 
         #A partir de las 2:30am en bares y 5am en discos ya solo se puede salir - Politica 5

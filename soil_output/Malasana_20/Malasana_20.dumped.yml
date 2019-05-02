@@ -1,7 +1,7 @@
 default_state: {}
 dir_path: soil_output/Malasana_20
 dry_run: false
-dump: [csv, gexf]
+dump: false
 environment_agents:
 - {agent_type: pubcrawl.Police}
 environment_class: pubcrawl.CityPubs
@@ -34,7 +34,7 @@ network_agents:
   description: 25-30 year old female
   state: {age: 25, gender: female, prob_change_bar: 0.2, prob_drink: 0.4}
   weight: 15
-network_params: {generator: empty_graph, n: 40}
+network_params: {generator: empty_graph, n: 20}
 num_trials: 1
 seed: None
 states: []
@@ -64,23 +64,3 @@ topology:
   - {id: 17}
   - {id: 18}
   - {id: 19}
-  - {id: 20}
-  - {id: 21}
-  - {id: 22}
-  - {id: 23}
-  - {id: 24}
-  - {id: 25}
-  - {id: 26}
-  - {id: 27}
-  - {id: 28}
-  - {id: 29}
-  - {id: 30}
-  - {id: 31}
-  - {id: 32}
-  - {id: 33}
-  - {id: 34}
-  - {id: 35}
-  - {id: 36}
-  - {id: 37}
-  - {id: 38}
-  - {id: 39}
