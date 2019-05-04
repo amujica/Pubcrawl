@@ -4,64 +4,54 @@ max_time: 38
 dump: false 
 network_params: 
   generator: empty_graph 
-  n: [55. 51. 59. 27. 38.]
+  n: 683
  
 network_agents: 
   - agent_type: pubcrawl.Patron 
     description: 15-19 year old male 
     state: 
       prob_drink: 0.5 
-      prob_change_bar: [0.25965558 0.69638387 0.28450722 0.74941573 0.52182274] 
+      prob_change_bar: 0.4376132925003279 
       gender: male 
       age: 15 
     weight: 15
- 
-network_agents: 
   - agent_type: pubcrawl.Patron 
     description: 15-19 year old female 
     state: 
       prob_drink: 0.4 
-      prob_change_bar: [0.25965558 0.69638387 0.28450722 0.74941573 0.52182274] 
+      prob_change_bar: 0.4376132925003279 
       gender: female 
       age: 15 
     weight: 15
- 
-network_agents: 
   - agent_type: pubcrawl.Patron 
     description: 20-24 year old male 
     state: 
       prob_drink: 0.5 
-      prob_change_bar: [0.25965558 0.69638387 0.28450722 0.74941573 0.52182274] 
+      prob_change_bar: 0.4376132925003279 
       gender: male 
       age: 20 
     weight: 20
- 
-network_agents: 
   - agent_type: pubcrawl.Patron 
     description: 20-24 year old female 
     state: 
       prob_drink: 0.4 
-      prob_change_bar: [0.25965558 0.69638387 0.28450722 0.74941573 0.52182274] 
+      prob_change_bar: 0.4376132925003279 
       gender: female 
       age: 20 
     weight: 20
- 
-network_agents: 
   - agent_type: pubcrawl.Patron 
     description: 25-30 year old male 
     state: 
       prob_drink: 0.4 
-      prob_change_bar: [0.25965558 0.69638387 0.28450722 0.74941573 0.52182274] 
-      gender: female 
+      prob_change_bar: 0.4376132925003279 
+      gender: male 
       age: 25 
     weight: 15
- 
-network_agents: 
   - agent_type: pubcrawl.Patron 
     description: 25-30 year old female 
     state: 
       prob_drink: 0.4 
-      prob_change_bar: [0.25965558 0.69638387 0.28450722 0.74941573 0.52182274] 
+      prob_change_bar: 0.4376132925003279 
       gender: female 
       age: 25 
     weight: 15
