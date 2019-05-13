@@ -279,21 +279,21 @@ class Patron(FSM):
         '''Setting max_pints'''
         if self['age']==15:
             if self['gender']=="female":
-                self['max_pints']=numpy.random.normal(3,0.5)
+                self['max_pints']=numpy.random.normal(3,0.5) #3 
             else:
-                self['max_pints']=numpy.random.normal(4,1)
+                self['max_pints']=numpy.random.normal(4,1) #4 1
 
         elif self['age']==20:
             if self['gender']=="female":
-                self['max_pints']=numpy.random.normal(4,1)
+                self['max_pints']=numpy.random.normal(4,1) #4 1
             else:
-                self['max_pints']=numpy.random.normal(6,1)
+                self['max_pints']=numpy.random.normal(6,1) #6 1
 
         else:
             if self['gender']=="female":
-                self['max_pints']=numpy.random.normal(4,1)
+                self['max_pints']=numpy.random.normal(4,1) #4 1
             else:
-                self['max_pints']=numpy.random.normal(6,1)
+                self['max_pints']=numpy.random.normal(6,1) #6 1
 
 
 
@@ -303,21 +303,21 @@ class Patron(FSM):
         '''Setting money'''
         if self['age']==15:
             if self['gender']=="female":
-                self['money']=numpy.random.normal(25,3)
+                self['money']=numpy.random.normal(25,3) #25
             else:
-                self['money']=numpy.random.normal(25,5)
+                self['money']=numpy.random.normal(25,5) #25
 
         elif self['age']==20:
             if self['gender']=="female":
-                self['money']=numpy.random.normal(35,7)
+                self['money']=numpy.random.normal(35,7) #35
             else:
-                self['money']=numpy.random.normal(40,7)
-
+                self['money']=numpy.random.normal(40,7) #40
+#25
         else:
             if self['gender']=="female":
-                self['money']=numpy.random.normal(60,10)
-            else:
-                self['money']=numpy.random.normal(65,15)
+                self['money']=numpy.random.normal(60,10) #60
+            else:#25
+                self['money']=numpy.random.normal(65,15) #65
 
 
 
@@ -600,6 +600,17 @@ class Patron(FSM):
             if self.env.enter(pub, self, *group):
                 self.info('We\'re all {} getting in {}!'.format(len(group)+1, pub))
                 capacity = self.env.return_occupancy(pub)
+                typebar = self.env.return_type(pub)
+                
+                if typebar == "disco":
+                    for friend in group:
+                        friend['pints']+=2
+                        friend['money']-=6
+                        self.info('BEBO DOS POR ENTRAR EN DISCO ----------------------------')
+                
+
+                
+
                 self.info('{} now has {} people inside'.format(pub,capacity))
                 return self.sober_in_pub
             else:
@@ -728,15 +739,15 @@ class Patron(FSM):
 
         if self['age']==15 or self['age']==20:
             if self['gender']=="male":
-                self['prob_fight']= 0.02 * self['pints']
+                self['prob_fight']= 0.003 * self['pints']
             else:
-                self['prob_fight']= 0.01 * self['pints']
+                self['prob_fight']= 0.001 * self['pints'] #0.0001
 
         if self['age']==25:
             if self['gender']=="male":
-                self['prob_fight']= 0.015 * self['pints']
+                self['prob_fight']= 0.002 * self['pints'] 
             else:
-                self['prob_fight']= 0.01 * self['pints']
+                self['prob_fight']= 0.001 * self['pints'] #0.00005
 
         
 
@@ -755,8 +766,8 @@ class Patron(FSM):
         if(type=="disco"):
             self['prob_change_bar'] = 0
 
-        else:
-            self['prob_change_bar'] = 0.2
+        
+            
 
 
         #Option of changing pub if you are a leader
@@ -769,13 +780,13 @@ class Patron(FSM):
         if self.now == (self['going_out_time']+4):
             if self['age']==15 or self['age']==20:
                 if self['gender']=="male":
-                    self['prob_drink']=0.4
+                    self['prob_drink']=0.6
                 else:
                     self['prob_drink']=0.25
 
             if self['age']==25:
                 if self['gender']=="male":
-                    self['prob_drink']=0.3
+                    self['prob_drink']=0.5
                 else:
                     self['prob_drink']=0.25
                 
@@ -783,9 +794,9 @@ class Patron(FSM):
 
         if self.now == (self['going_out_time']+8):
             if self['gender']=="male":
-                self['prob_drink']=0.25
+                self['prob_drink']=0.4 #0.25
             else:
-                self['prob_drink']=0.2
+                self['prob_drink']=0.2#0.2
 
         
 
@@ -901,15 +912,15 @@ class Patron(FSM):
 
         if self['age']==15 or self['age']==20:
             if self['gender']=="male":
-                self['prob_fight']= 0.025 * self['pints']
+                self['prob_fight']= 0.004 * self['pints']
             else:
-                self['prob_fight']= 0.015 * self['pints']
+                self['prob_fight']= 0.002 * self['pints'] #0.0002
 
         if self['age']==25:
             if self['gender']=="male":
-                self['prob_fight']= 0.02 * self['pints']
+                self['prob_fight']= 0.003 * self['pints']
             else:
-                self['prob_fight']= 0.015 * self['pints']
+                self['prob_fight']= 0.002 * self['pints'] #0.00006
 
         
 
@@ -928,8 +939,8 @@ class Patron(FSM):
         if(type=="disco"):
             self['prob_change_bar'] = 0
 
-        else:
-            self['prob_change_bar'] = 0.2
+      
+            
 
 
         #Option of changing pub if you are a leader
@@ -942,13 +953,13 @@ class Patron(FSM):
         if self.now == (self['going_out_time']+4):
             if self['age']==15 or self['age']==20:
                 if self['gender']=="male":
-                    self['prob_drink']=0.4
+                    self['prob_drink']=0.6
                 else:
                     self['prob_drink']=0.25
 
             if self['age']==25:
                 if self['gender']=="male":
-                    self['prob_drink']=0.3
+                    self['prob_drink']=0.5
                 else:
                     self['prob_drink']=0.25
                 
@@ -956,9 +967,9 @@ class Patron(FSM):
 
         if self.now == (self['going_out_time']+8):
             if self['gender']=="male":
-                self['prob_drink']=0.25
+                self['prob_drink']=0.4
             else:
-                self['prob_drink']=0.2
+                self['prob_drink']=0.3
 
 
     
@@ -1132,7 +1143,7 @@ class Patron(FSM):
         if election != None:
 
             for fighter in fighters:
-                if (fighter['prob_fight']>election['prob_fight']) and (fighter.id!=self.id) and (not fighter['in_a_fight']) and (fighter not in group):
+                if (fighter['prob_fight']>election['prob_fight']) and (fighter.id!=self.id) and (not fighter['in_a_fight']) and (fighter not in group) and (fighter['gender']==self['gender']):
                     election = fighter
 
 
