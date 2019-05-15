@@ -1,18 +1,18 @@
 ---
-name: Malasana_prueba
+name: Prueba_test
 num_trials: 1
 max_time: 38
 dump: false
 network_params:
   
   generator: empty_graph
-  n: 1500
+  n: 50
 
 network_agents:
   - agent_type: pubcrawl.Patron
     description: 15-19 year old male
     state:
-      prob_drink: 0.5
+      prob_drink: 0.6
       prob_change_bar: 0.2
       gender: male
       age: 15
@@ -22,7 +22,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 15-19 year old female
     state:
-      prob_drink: 0.4
+      prob_drink: 0.25
       prob_change_bar: 0.2
       gender: female
       age: 15
@@ -32,7 +32,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 20-24 year old male
     state:
-      prob_drink: 0.5
+      prob_drink: 0.6
       prob_change_bar: 0.2
       gender: male
       age: 20
@@ -42,7 +42,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 20-24 year old female
     state:
-      prob_drink: 0.4
+      prob_drink: 0.25
       prob_change_bar: 0.2
       gender: female
       age: 20
@@ -52,7 +52,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 25-30 year old male
     state:
-      prob_drink: 0.4
+      prob_drink: 0.5
       prob_change_bar: 0.2
       gender: male
       age: 25
@@ -62,7 +62,7 @@ network_agents:
   - agent_type: pubcrawl.Patron
     description: 25-30 year old female
     state:
-      prob_drink: 0.4
+      prob_drink: 0.3
       prob_change_bar: 0.2
       gender: female
       age: 25

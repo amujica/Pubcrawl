@@ -145,7 +145,7 @@ class CityPubs(Environment):
 
                 return False
 
-        pub['occupancy'] += len(nodes)
+        pub['occupancy'] += len(nodes) + 1
         for node in nodes:
             node['pub'] = pub_name
             node['money'] = node['money'] - pub['entry']
@@ -487,6 +487,8 @@ class Patron(FSM):
 
 
                 r=random()
+                
+
                 if self['age']==15:
                     if(r<0.3963):
                         going_out_time = 2
@@ -602,12 +604,13 @@ class Patron(FSM):
                 capacity = self.env.return_occupancy(pub)
                 typebar = self.env.return_type(pub)
                 
+                '''
                 if typebar == "disco":
                     for friend in group:
                         friend['pints']+=2
                         friend['money']-=6
                         self.info('BEBO DOS POR ENTRAR EN DISCO ----------------------------')
-                
+                '''
 
                 
 
@@ -780,21 +783,21 @@ class Patron(FSM):
         if self.now == (self['going_out_time']+4):
             if self['age']==15 or self['age']==20:
                 if self['gender']=="male":
-                    self['prob_drink']=0.6
+                    self['prob_drink']=0.6 #0.6
                 else:
-                    self['prob_drink']=0.25
+                    self['prob_drink']=0.25 #0.25
 
             if self['age']==25:
                 if self['gender']=="male":
-                    self['prob_drink']=0.5
+                    self['prob_drink']=0.5 #0.5
                 else:
-                    self['prob_drink']=0.25
+                    self['prob_drink']=0.25 #0.25
                 
 
 
         if self.now == (self['going_out_time']+8):
             if self['gender']=="male":
-                self['prob_drink']=0.4 #0.25
+                self['prob_drink']=0.4 #0.4
             else:
                 self['prob_drink']=0.2#0.2
 
@@ -896,6 +899,7 @@ class Patron(FSM):
 
             #Check if the Patron is intoxicated
         if self['pints'] > self['intoxication_drinkthreshold']:
+            self['intoxicated'] = True
             self.debug('I got intoxicated. I go home: {}'.format(self.id))
             self.debug('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
 
@@ -953,23 +957,23 @@ class Patron(FSM):
         if self.now == (self['going_out_time']+4):
             if self['age']==15 or self['age']==20:
                 if self['gender']=="male":
-                    self['prob_drink']=0.6
+                    self['prob_drink']=0.6 #0.6
                 else:
-                    self['prob_drink']=0.25
+                    self['prob_drink']=0.25 #0.25
 
             if self['age']==25:
                 if self['gender']=="male":
-                    self['prob_drink']=0.5
+                    self['prob_drink']=0.5 #0.5
                 else:
-                    self['prob_drink']=0.25
+                    self['prob_drink']=0.25 #0.25
                 
 
 
         if self.now == (self['going_out_time']+8):
             if self['gender']=="male":
-                self['prob_drink']=0.4
+                self['prob_drink']=0.4 #0.4
             else:
-                self['prob_drink']=0.3
+                self['prob_drink']=0.3 #0.3
 
 
     
@@ -1021,7 +1025,7 @@ class Patron(FSM):
         group = list(self.get_neighboring_agents())
 
 
-        self.info('Group tiene {} '.format(len(group)))
+        self.info('Group tiene {} miembros '.format(len(group)))
 
         for member in group:
             self.info('{}'.format(member.id))
@@ -1165,6 +1169,7 @@ class Patron(FSM):
         #Políticas no vender a menores
             
         if(self['prob_drink']>random() and price<self['money']):# and self['age']<18:
+            #self.info('SOY {} y he bebido!! ----------------------------------------------'.format(self['gender']))
             self['pints'] = self['pints'] + 1
             self['money'] = self['money'] -  price
             self.debug('Cheers to that')
@@ -1305,11 +1310,11 @@ class Police(FSM):
         
         '''
 
-        #No vender alcohol a menores en todo el modelo -Politica 2
+        #No vender alcohol a menores en todo el modelo -Politica 3
 
                 #Función drink
 
-        #Precios minimos para el alcohol. Subimos los precios un 20% - Politica 3
+        #Precios minimos para el alcohol. Subimos los precios un 20% - Politica 2
         '''
         percentage = 0.2
         if self.now == 1:
@@ -1317,8 +1322,8 @@ class Police(FSM):
             for pub in pubs:
                 
                 self.env.set_price(pub,self.env.return_price(pub)*(1+percentage))
-        '''
         
+        '''
         '''
         #No se puede hacer public drinking - Politica 4
         agents = list(self.get_agents(is_leader=True))
