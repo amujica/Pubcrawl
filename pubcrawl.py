@@ -145,7 +145,7 @@ class CityPubs(Environment):
 
                 return False
 
-        pub['occupancy'] += len(nodes) + 1
+        pub['occupancy'] += len(nodes) 
         for node in nodes:
             node['pub'] = pub_name
             node['money'] = node['money'] - pub['entry']
@@ -240,7 +240,7 @@ class CityPubs(Environment):
         except KeyError:
             raise ValueError('Pub {} is not available'.format(pub_name))
         pub['occupancy']-=1
-        #agent['pub']=None
+        agent['pub']=None
 
     
     
@@ -657,7 +657,25 @@ class Patron(FSM):
     def sober_in_pub(self):
 
         group = list(self.get_neighboring_agents())
-        
+        at_homes = list(self.get_agents(state_id=Patron.at_home.id))
+
+        '''
+        for groupies in group:
+            self.info('Miembro del grupo: {}'.format(groupies.id))
+        '''
+        for at_home in at_homes:
+            if at_home in group:
+                group.remove(at_home)
+
+        for groupies in at_homes:
+            self.info('Estoy at_home: {}'.format(groupies.id))
+        '''
+        for groupies in group:
+            self.info('Pero quitando los at_homes...: {}'.format(groupies.id))
+        '''
+
+        pubii = self['pub']
+
         for member in group:
             self.debug('Este agente está en la lista de group: {}.'.format(member.id))
         
@@ -678,13 +696,13 @@ class Patron(FSM):
             if (friend['intoxicated']) or (friend['in_a_fight']):
                 r = random()
                 if r<0.7:
-                    self.debug('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
+                    self.info('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
                     
-                    self.debug('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+                    self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
 
                     self.env.exit_single(self['pub'],self.get_agent(self.id))
 
-                    self.debug(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+                    self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(pubii)))
                     return self.at_home
                     
 
@@ -697,12 +715,13 @@ class Patron(FSM):
 
             agente = self.get_agent(self.id)
             self.debug('EL id es: {} '.format(agente.id))
-            self.debug('Es mi hora de irme a casa')
-            self.debug('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+            self.info('Es mi hora de irme a casa')
+            
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(pubii)))
 
             self.env.exit_single(self['pub'], self.get_agent(self.id))
 
-            self.debug(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(pubii)))
             return self.at_home
             
 
@@ -713,9 +732,10 @@ class Patron(FSM):
         
 
         if ((self['group_size'] * 0.5) >= friends_remaining+1) or (friends_remaining==0):
-            self.debug('Me voy a casa porque habíamos salido {} y solo quedamos {}'.format(self['group_size'], friends_remaining+1))
+            self.info('Me voy a casa porque habíamos salido {} y solo quedamos {}'.format(self['group_size'], friends_remaining+1))
             self.env.exit(self['pub'],self, *group)
             for friend in group:
+               
                 self.info('Ya somos pocos los que quedamos. Me voy, soy {}'.format(friend.id))
                 friend.set_state(self.at_home)
             
@@ -728,11 +748,11 @@ class Patron(FSM):
         if self['in_a_fight']:
             
             
-            self.debug('Me he peleado con alguien y me voy. Soy {}'.format(self.id))
-            self.debug('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+            self.info('Me he peleado con alguien y me voy. Soy {}'.format(self.id))
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
 
             self.env.exit_single(self['pub'], self.get_agent(self.id))
-            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(pubii)))
             return self.at_home
 
         #Option of drinking a beverage
@@ -817,8 +837,13 @@ class Patron(FSM):
     @state
     def drunk_in_pub(self):
    
-        
+        pubii = self['pub']
         group = list(self.get_neighboring_agents())
+        at_homes = list(self.get_agents(state_id=Patron.at_home.id))
+
+        for at_home in at_homes:
+            if at_home in group:
+                group.remove(at_home)
         
         for member in group:
             self.debug('Este agente está en la lista de group: {}.'.format(member.id))
@@ -840,13 +865,13 @@ class Patron(FSM):
             if (friend['intoxicated']) or (friend['in_a_fight']):
                 r = random()
                 if r<0.7:
-                    self.debug('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
+                    self.info('Mi amigo {} se ha intoxicado o peleado. Me voy'.format(friend.id))
                     #self.info('El bar es: {}'.format(self['pub']))
-                    self.debug('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+                    self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
 
                     self.env.exit_single(self['pub'],self.get_agent(self.id))
 
-                    self.debug(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+                    self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(pubii)))
                     return self.at_home
                     
 
@@ -855,17 +880,19 @@ class Patron(FSM):
             
 
             #Es hora de irse a casa
+            
         if self.now == self['coming_back_time']:
 
-            self.debug('Es mi hora de irme a casa')
-            self.debug('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+            agente = self.get_agent(self.id)
+            self.debug('EL id es: {} '.format(agente.id))
+            self.info('Es mi hora de irme a casa')
+            pubii = self['pub']
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(pubii)))
 
             self.env.exit_single(self['pub'], self.get_agent(self.id))
 
-            self.debug(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(pubii)))
             return self.at_home
-            
-
             # Quedan pocos amigos
 
         friends_remaining = len(list(self.get_neighboring_agents()))
@@ -873,10 +900,10 @@ class Patron(FSM):
         
 
         if ((self['group_size'] * 0.5) >= friends_remaining+1) or (friends_remaining==0):
-            self.debug('Me voy a casa porque habíamos salido {} y solo quedamos {}'.format(self['group_size'], friends_remaining+1))
+            self.info('Me voy a casa porque habíamos salido {} y solo quedamos {}'.format(self['group_size'], friends_remaining+1))
             self.env.exit(self['pub'],self, *group)
             for friend in group:
-                self.debug('Ya somos pocos los que quedamos. Me voy, soy {}'.format(friend.id))
+                self.info('Ya somos pocos los que quedamos. Me voy, soy {}'.format(friend.id))
                 friend.set_state(self.at_home)
             
             #Quizas no es necesario
@@ -887,12 +914,12 @@ class Patron(FSM):
 
         if self['in_a_fight']:
             
-            self.debug('Me he peleado con alguien y me voy. Soy {}'.format(self.id))
-            self.debug('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+            self.info('Me he peleado con alguien y me voy. Soy {}'.format(self.id))
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
 
             self.env.exit_single(self['pub'], self.get_agent(self.id))
 
-            self.debug(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(pubii)))
             return self.at_home
 
 
@@ -900,12 +927,12 @@ class Patron(FSM):
             #Check if the Patron is intoxicated
         if self['pints'] > self['intoxication_drinkthreshold']:
             self['intoxicated'] = True
-            self.debug('I got intoxicated. I go home: {}'.format(self.id))
-            self.debug('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
+            self.info('I got intoxicated. I go home: {}'.format(self.id))
+            self.info('El bar es: {} y tiene dentro {} personas'.format(self['pub'], self.env.return_occupancy(self['pub'])))
 
             self.env.exit_single(self['pub'], self.get_agent(self.id))
 
-            self.debug(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(self['pub'])))
+            self.info(' y ahora  tiene dentro {} personas'.format( self.env.return_occupancy(pubii)))
             return self.at_home
 
 
@@ -1022,11 +1049,12 @@ class Patron(FSM):
         current_pub = self['pub']
         type = self.env.return_type(self['pub'])
 
-        group = list(self.get_neighboring_agents())
+        group = list(self.get_neighboring_agents()) #TIene todos los del grupo menos el líder
 
 
-        self.info('Group tiene {} miembros '.format(len(group)))
+        self.info('Group tiene {} miembros '.format(len(group)+1))
 
+        self.info('{}'.format(self.id))
         for member in group:
             self.info('{}'.format(member.id))
 
@@ -1036,13 +1064,13 @@ class Patron(FSM):
         at_homes = list(self.get_agents(state_id=Patron.at_home.id))
 
         for at_home in at_homes:
-            self.debug('Este agente está en la lista de at_homes: {}.'.format(at_home.id))
+            self.info('Este agente está en la lista de at_homes: {}.'.format(at_home.id))
             if at_home in group:
 
                 group.remove(at_home)
 
 
-        self.info('... y ahora tiene {} '.format(len(group)))
+        self.info('... y ahora tiene {} '.format(len(group)+1))
 
         r= random()
 

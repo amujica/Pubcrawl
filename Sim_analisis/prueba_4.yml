@@ -1,60 +1,60 @@
-name: Malasana_morris_1 
+name: Malasana_morris_4 
 num_trials: 1 
 max_time: 38 
 dump: false 
 network_params: 
   generator: empty_graph 
-  n: 833
+  n: 1500
  
 network_agents: 
   - agent_type: pubcrawl.Patron 
     description: 15-19 year old male 
     state: 
       prob_drink: 0.6 
-      prob_change_bar: 0.1 
+      prob_change_bar: 0.5666666666666667 
       gender: male 
       age: 15 
-    weight: 12.222222222222223
+    weight: 30.0
   - agent_type: pubcrawl.Patron 
     description: 15-19 year old female 
     state: 
       prob_drink: 0.25 
-      prob_change_bar: 0.1 
+      prob_change_bar: 0.5666666666666667 
       gender: female 
       age: 15 
-    weight: 21.11111111111111
+    weight: 3.3333333333333335
   - agent_type: pubcrawl.Patron 
     description: 20-24 year old male 
     state: 
       prob_drink: 0.6 
-      prob_change_bar: 0.1 
+      prob_change_bar: 0.5666666666666667 
       gender: male 
       age: 20 
-    weight: 12.222222222222223
+    weight: 30.0
   - agent_type: pubcrawl.Patron 
     description: 20-24 year old female 
     state: 
       prob_drink: 0.25 
-      prob_change_bar: 0.1 
+      prob_change_bar: 0.5666666666666667 
       gender: female 
       age: 20 
-    weight: 21.11111111111111
+    weight: 3.3333333333333335
   - agent_type: pubcrawl.Patron 
     description: 25-30 year old male 
     state: 
       prob_drink: 0.5 
-      prob_change_bar: 0.1 
+      prob_change_bar: 0.5666666666666667 
       gender: male 
       age: 25 
-    weight: 12.222222222222223
+    weight: 30.0
   - agent_type: pubcrawl.Patron 
     description: 25-30 year old female 
     state: 
       prob_drink: 0.3 
-      prob_change_bar: 0.1 
+      prob_change_bar: 0.5666666666666667 
       gender: female 
       age: 25 
-    weight: 21.11111111111111
+    weight: 3.3333333333333335
 
 environment_agents: 
   - agent_type: pubcrawl.Police 
