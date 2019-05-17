@@ -1,0 +1,65 @@
+name: Malasana_oat_167 
+num_trials: 1 
+max_time: 38 
+dump: false 
+network_params: 
+  generator: empty_graph 
+  n: 1166
+ 
+network_agents: 
+  - agent_type: pubcrawl.Patron 
+    description: 15-19 year old male 
+    state: 
+      prob_drink: 0.6 
+      prob_change_bar: 0.6372274237742914 
+      gender: male 
+      age: 15 
+    weight: 11.72865275288241
+  - agent_type: pubcrawl.Patron 
+    description: 15-19 year old female 
+    state: 
+      prob_drink: 0.25 
+      prob_change_bar: 0.6372274237742914 
+      gender: female 
+      age: 15 
+    weight: 21.60468058045093
+  - agent_type: pubcrawl.Patron 
+    description: 20-24 year old male 
+    state: 
+      prob_drink: 0.6 
+      prob_change_bar: 0.6372274237742914 
+      gender: male 
+      age: 20 
+    weight: 11.72865275288241
+  - agent_type: pubcrawl.Patron 
+    description: 20-24 year old female 
+    state: 
+      prob_drink: 0.25 
+      prob_change_bar: 0.6372274237742914 
+      gender: female 
+      age: 20 
+    weight: 21.60468058045093
+  - agent_type: pubcrawl.Patron 
+    description: 25-30 year old male 
+    state: 
+      prob_drink: 0.5 
+      prob_change_bar: 0.6372274237742914 
+      gender: male 
+      age: 25 
+    weight: 11.72865275288241
+  - agent_type: pubcrawl.Patron 
+    description: 25-30 year old female 
+    state: 
+      prob_drink: 0.3 
+      prob_change_bar: 0.6372274237742914 
+      gender: female 
+      age: 25 
+    weight: 21.60468058045093
+
+environment_agents: 
+  - agent_type: pubcrawl.Police 
+environment_class: pubcrawl.CityPubs 
+environment_params:
+  number_of_pubs: 3
+  number_of_discos: 2
+  number_of_street: 2
