@@ -6,7 +6,7 @@ dump: false
 network_params:
   
   generator: empty_graph
-  n: 50
+  n: 1500
 
 network_agents:
   - agent_type: pubcrawl.Patron
