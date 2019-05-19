@@ -21,7 +21,7 @@ class CityPubs(Environment):
   
     level = logging.DEBUG
 
-    def __init__(self, *args, number_of_pubs=3, number_of_discos=3, number_of_street=3, **kwargs):
+    def __init__(self, *args, number_of_pubs=4, number_of_discos=4, number_of_street=4, **kwargs):
                    
                     super(CityPubs, self).__init__(*args, **kwargs)  #Para la clase superior. Constructor super.
                     pubs = {}
