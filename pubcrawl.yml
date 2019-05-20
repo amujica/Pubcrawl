@@ -6,7 +6,7 @@ dump: false
 network_params:
   
   generator: empty_graph
-  n: 50
+  n: 500
 
 network_agents:
   - agent_type: pubcrawl.Patron
@@ -17,7 +17,7 @@ network_agents:
       gender: male
       age: 15
       
-    weight: 15
+    weight: 33
 
   - agent_type: pubcrawl.Patron
     description: 15-19 year old female
@@ -27,7 +27,7 @@ network_agents:
       gender: female
       age: 15
       
-    weight: 15
+    weight: 0
 
   - agent_type: pubcrawl.Patron
     description: 20-24 year old male
@@ -37,7 +37,7 @@ network_agents:
       gender: male
       age: 20
       
-    weight: 20
+    weight: 33
 
   - agent_type: pubcrawl.Patron
     description: 20-24 year old female
@@ -47,7 +47,7 @@ network_agents:
       gender: female
       age: 20
       
-    weight: 20
+    weight: 0
 
   - agent_type: pubcrawl.Patron
     description: 25-30 year old male
@@ -57,7 +57,7 @@ network_agents:
       gender: male
       age: 25
       
-    weight: 15
+    weight: 34
 
   - agent_type: pubcrawl.Patron
     description: 25-30 year old female
@@ -73,7 +73,7 @@ environment_agents:
   - agent_type: pubcrawl.Police
 environment_class: pubcrawl.CityPubs
 environment_params:
-  number_of_pubs: 5
+  number_of_pubs: 12
   number_of_discos: 2
   number_of_street: 3
 
